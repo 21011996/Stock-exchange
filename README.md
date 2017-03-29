@@ -19,7 +19,7 @@ char * name
 size_t header_size
 char * header
 size_t message_size
-char * message
+char * record
 
 
 функциональность 
