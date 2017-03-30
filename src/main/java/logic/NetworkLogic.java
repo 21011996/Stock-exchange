@@ -7,12 +7,19 @@ import messages.Message;
  */
 
 public class NetworkLogic {
+    //private Map<String, NetworkInfo> addressBook = new Map<>();
+
     /**
-     * Sends a message to a node over the network.
+     * A handle that sends a message to a node over the network.
      * @param node The addressee
      * @param message The message
      */
-    public void send(Node node, Message message) {
+    public void send(String node, Message message) {
         //TODO: Parse the network information from the node
     }
+
+    /**
+     * The "real" message transfer mechanism. Uses a node's network address to send the data.
+     */
+    private void send() {};
 }

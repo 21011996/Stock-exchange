@@ -1,15 +1,10 @@
 package logic;
 
 import files.File;
-import messages.AcceptBuyMessage;
-import messages.Message;
-import messages.RequestBuyMessage;
+import messages.*;
 import model.PurchaseRequest;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Scanner;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,12 +14,34 @@ import java.util.logging.Logger;
 public class SellerLogic {
     private HashMap<String, File> files = new HashMap<>();
     private HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
+    private HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
 
     private Scanner in = new Scanner(System.in);
     private Node parent;
 
     public SellerLogic(Node parent) {
         this.parent = parent;
+    }
+
+    public SellerLogic(Node parent, Collection<File> collection) {
+        this(parent);
+        addFiles(collection);
+    }
+
+    public void addFiles(Collection<File> collection) {
+        for (File file : collection) {
+            addFile(file);
+        }
+    }
+
+    public void addFile(File file) {
+        if (files.containsKey(file.getName())) {
+            if (!files.get(file.getName()).equals(file)) {
+                Logger.getGlobal().log(Level.SEVERE, "Filename uniqueness violated");
+            } else {
+                Logger.getGlobal().log(Level.WARNING, "Repetitive addition of the same file detected");
+            }
+        }
     }
 
     /**
@@ -41,8 +58,35 @@ public class SellerLogic {
                 Logger.getGlobal().log(Level.WARNING, "Request received for nonexistent file: " + filename);
             } else {
                 purchaseRequests.putIfAbsent(filename, new ArrayList<>());
-                purchaseRequests.get(filename).add(new PurchaseRequest(Node.STUB, price));
+                purchaseRequests.get(filename).add(new PurchaseRequest(message.getName(), price));
                 printBidStatus(filename, true);
+            }
+        } else if (message instanceof HaveMoneyMessage) {
+            String requestedFile = ((HaveMoneyMessage) message).getFile().getName();
+            if (acceptedRequests.get(requestedFile).getNode().equals(message.getName())) {
+                parent.sendMessage(Node.STUB.getName(), new TransferFileMessage(parent.getName(), files.get(requestedFile)));
+                File details = files.get(requestedFile);
+                details.setPrice(acceptedRequests.get(requestedFile).getOffer());
+                for (PurchaseRequest request : purchaseRequests.get(requestedFile)) {
+                    parent.sendMessage(request.getNode(), new NotifyBuyMessage(parent.getName(), details));
+                }
+                files.remove(requestedFile);
+                purchaseRequests.remove(requestedFile);
+                acceptedRequests.remove(requestedFile);
+            } else {
+                Logger.getGlobal().log(Level.SEVERE, "Attempting to force-buy the file. The message could have been fabricated. Malicious node: " + message.getName());
+            }
+        } else if (message instanceof BrokeMessage) {
+            String fileName = ((BrokeMessage) message).getFile().getName();
+            if (acceptedRequests.get(fileName).equals(message.getName())) {
+                acceptedRequests.remove(fileName);
+                System.out.println(String.format("Node %s has failed to pay for the file and has been removed from contention.", message.getName()));
+                ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
+                requests.removeIf(purchaseRequest -> purchaseRequest.getNode().equals(message.getName()));
+                //AFAIR this should remove the request from the mapped arraylist, too
+                printBidStatus(fileName, true);
+            } else {
+                Logger.getGlobal().log(Level.SEVERE, "Insufficient funds message without previous accepted bid. The message could have been fabricated. Malicious node: " + message.getName());
             }
         }
     }
@@ -54,7 +98,7 @@ public class SellerLogic {
      */
     private void printBidStatus(String filename, boolean interactive) {
         ArrayList<PurchaseRequest> requests = purchaseRequests.get(filename);
-        requests.sort(Comparator.comparingInt(PurchaseRequest::getOffer));
+        requests.sort(Comparator.comparingInt(PurchaseRequest::getOffer).reversed());
         System.out.println(String.format("Bids for file %s now: %d", filename, requests.size()));
         for (int i = 0; i < requests.size(); i++) {
             System.out.println(String.format("#%d bid: %7d from node %s", i + 1,
@@ -66,7 +110,7 @@ public class SellerLogic {
             try {
                 int choice = Integer.parseInt(input);
                 if (choice > 0 && choice <= requests.size()) {
-                    acceptOffer(filename, choice);
+                    acceptOffer(filename, requests.get(choice + 1));
                 }
             } catch (NumberFormatException e) {
 
@@ -83,9 +127,9 @@ public class SellerLogic {
         }
     }
 
-    private void acceptOffer(String filename, int choice) {
-        //TODO: Send to a real node based on @choice
-        parent.sendMessage(Node.STUB, new AcceptBuyMessage(parent.getName(), filename));
+    private void acceptOffer(String filename, PurchaseRequest offer) {
+        parent.sendMessage(offer.getNode(), new AcceptBuyMessage(parent.getName(), filename));
+        acceptedRequests.put(filename, offer);
     }
 
 }

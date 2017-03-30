@@ -11,7 +11,7 @@ public class Node {
     private NetworkLogic networkLogic;
     private SellerLogic sellerLogic;
 
-    void sendMessage(Node node, Message message) {
+    void sendMessage(String node, Message message) {
         networkLogic.send(node, message);
     }
 
