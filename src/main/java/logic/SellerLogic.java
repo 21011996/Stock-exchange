@@ -78,7 +78,7 @@ public class SellerLogic {
             }
         } else if (message instanceof BrokeMessage) {
             String fileName = ((BrokeMessage) message).getFile().getName();
-            if (acceptedRequests.get(fileName).equals(message.getName())) {
+            if (acceptedRequests.get(fileName).getNode().equals(message.getName())) {
                 acceptedRequests.remove(fileName);
                 System.out.println(String.format("Node %s has failed to pay for the file and has been removed from contention.", message.getName()));
                 ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
@@ -113,7 +113,7 @@ public class SellerLogic {
                     acceptOffer(filename, requests.get(choice + 1));
                 }
             } catch (NumberFormatException e) {
-
+                System.out.println("Wrong input format");
             }
         }
     }
