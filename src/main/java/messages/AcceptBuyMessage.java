@@ -4,7 +4,7 @@ package messages;
  * @author ilya2
  *         created on 29.03.2017
  */
-public class AcceptBuyMessage extends Message {
+public class AcceptBuyMessage extends SellerMessages {
     private String fileName;
 
     public AcceptBuyMessage(String name, String fileName) {

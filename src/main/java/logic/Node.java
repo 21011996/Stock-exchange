@@ -12,7 +12,8 @@ public class Node {
     private SellerLogic sellerLogic;
 
     void sendMessage(String node, Message message) {
-        networkLogic.send(node, message);
+        //networkLogic.send(node, message);
+        System.out.println("Test: " + node + "->" + message);
     }
 
     /**
@@ -20,6 +21,7 @@ public class Node {
      * @return A unique name of this node
      */
     public String getName() {
-        return this.toString();
+        return "SellerTestNode";
+        //return this.toString();
     }
 }

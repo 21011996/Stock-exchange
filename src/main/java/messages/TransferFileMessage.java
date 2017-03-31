@@ -6,7 +6,7 @@ import files.File;
  * @author ilya2
  *         created on 29.03.2017
  */
-public class TransferFileMessage extends Message {
+public class TransferFileMessage extends SellerMessages {
     private File file;
 
     public TransferFileMessage(String name, File file) {

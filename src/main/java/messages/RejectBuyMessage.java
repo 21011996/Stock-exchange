@@ -4,7 +4,7 @@ package messages;
  * @author ilya2
  *         created on 29.03.2017
  */
-public class RejectBuyMessage extends Message {
+public class RejectBuyMessage extends SellerMessages {
     private String fileName;
     private String reason;
 

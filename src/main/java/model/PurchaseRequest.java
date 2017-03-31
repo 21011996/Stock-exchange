@@ -13,7 +13,6 @@ public class PurchaseRequest {
     }
 
     public String getNode() {
-
         return node;
     }
 

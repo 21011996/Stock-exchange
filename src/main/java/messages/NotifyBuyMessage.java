@@ -6,7 +6,7 @@ import files.File;
  * @author ilya2
  *         created on 29.03.2017
  */
-public class NotifyBuyMessage extends Message {
+public class NotifyBuyMessage extends SellerMessages {
     private File file;
 
     public NotifyBuyMessage(String name, File file) {

@@ -6,7 +6,7 @@ import files.File;
  * @author ilya2
  *         created on 29.03.2017
  */
-public class HaveMoneyMessage extends Message {
+public class HaveMoneyMessage extends BuyerMessages {
     private File file;
 
     public HaveMoneyMessage(String name, File file) {

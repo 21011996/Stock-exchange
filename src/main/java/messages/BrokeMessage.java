@@ -6,7 +6,7 @@ import files.File;
  * @author ilya2
  *         created on 29.03.2017
  */
-public class BrokeMessage extends Message {
+public class BrokeMessage extends BuyerMessages {
     private File file;
 
     public BrokeMessage(String name, File file) {

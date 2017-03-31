@@ -4,7 +4,7 @@ package messages;
  * @author ilya2
  *         created on 29.03.2017
  */
-public class RequestBuyMessage extends Message {
+public class RequestBuyMessage extends BuyerMessages {
     private int requestPrice;
     private String requestFile;
 

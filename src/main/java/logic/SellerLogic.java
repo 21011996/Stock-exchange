@@ -28,6 +28,10 @@ public class SellerLogic {
         addFiles(collection);
     }
 
+    public void setIn(Scanner in) {
+        this.in = in;
+    }
+
     public void addFiles(Collection<File> collection) {
         for (File file : collection) {
             addFile(file);
@@ -48,6 +52,10 @@ public class SellerLogic {
 
     public File getFile(String filename) {
         return files.get(filename);
+    }
+
+    public HashMap<String, File> getFiles() {
+        return files;
     }
 
     /**
@@ -116,7 +124,7 @@ public class SellerLogic {
             try {
                 int choice = Integer.parseInt(input);
                 if (choice > 0 && choice <= requests.size()) {
-                    acceptOffer(filename, requests.get(choice + 1));
+                    acceptOffer(filename, requests.get(choice - 1));
                 }
             } catch (NumberFormatException e) {
                 System.out.println("Wrong input format");

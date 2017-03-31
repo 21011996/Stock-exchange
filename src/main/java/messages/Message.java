@@ -39,5 +39,10 @@ public abstract class Message {
         return name;
     }
 
+    @Override
+    public String toString() {
+        return toRecord().toString();
+    }
+
     public abstract Record toRecord();
 }
