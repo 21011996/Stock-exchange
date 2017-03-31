@@ -41,7 +41,13 @@ public class SellerLogic {
             } else {
                 Logger.getGlobal().log(Level.WARNING, "Repetitive addition of the same file detected");
             }
+        } else {
+            files.put(file.getName(), file);
         }
+    }
+
+    public File getFile(String filename) {
+        return files.get(filename);
     }
 
     /**
