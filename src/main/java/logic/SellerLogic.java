@@ -77,13 +77,16 @@ public class SellerLogic {
             }
         } else if (message instanceof HaveMoneyMessage) {
             String requestedFile = ((HaveMoneyMessage) message).getFile().getName();
+            String requestSender = message.getName();
             if (acceptedRequests.containsKey(requestedFile) &&
                     acceptedRequests.get(requestedFile).getNode().equals(message.getName())) {
-                parent.sendMessage(Node.STUB.getName(), new TransferFileMessage(parent.getName(), files.get(requestedFile)));
+                File toTransfer = files.get(requestedFile);
+                toTransfer.setPrice(acceptedRequests.get(requestedFile).getOffer());
+                parent.sendMessage(Node.STUB.getName(), new TransferFileMessage(parent.getName(), toTransfer));
                 File details = files.get(requestedFile);
                 details.setPrice(acceptedRequests.get(requestedFile).getOffer());
                 for (PurchaseRequest request : purchaseRequests.get(requestedFile)) {
-                    parent.sendMessage(request.getNode(), new NotifyBuyMessage(parent.getName(), details));
+                    parent.sendMessage(request.getNode(), new NotifyBuyMessage(requestSender, details));
                 }
                 files.remove(requestedFile);
                 purchaseRequests.remove(requestedFile);
@@ -115,13 +118,13 @@ public class SellerLogic {
     private void printBidStatus(String filename, boolean interactive) {
         ArrayList<PurchaseRequest> requests = purchaseRequests.get(filename);
         requests.sort(Comparator.comparingInt(PurchaseRequest::getOffer).reversed());
-        System.out.println(String.format("Bids for file %s now: %d", filename, requests.size()));
+        System.out.println(String.format("Bids for file %s(base price is %d) now: %d", filename, files.get(filename).getPrice(), requests.size()));
         for (int i = 0; i < requests.size(); i++) {
             System.out.println(String.format("#%d bid: %7d from node %s", i + 1,
                     requests.get(i).getOffer(), requests.get(i).getNode()));
         }
         if (interactive && requests.size() > 0) {
-            System.out.println("Enter the number of a node to accept offer (anything else to ignore all offers): ");
+            System.out.println("Enter the number of a node to accept offer (\"0\" to reject all offers): ");
             String input = in.nextLine();
             try {
                 int choice = Integer.parseInt(input);

@@ -1,7 +1,7 @@
 import files.File;
 import logic.Node;
 import logic.SellerLogic;
-import messages.BrokeMessage;
+import messages.HaveMoneyMessage;
 import messages.RequestBuyMessage;
 
 /**
@@ -15,7 +15,9 @@ public class Main {
         System.out.println("Testing onReceive");
         sellerLogic.addFile(new File("test", 100));
         sellerLogic.onMessageReceived(new RequestBuyMessage("Test", 101, "test"));
-        sellerLogic.onMessageReceived(new BrokeMessage("Test", new File("test", 101)));
+        sellerLogic.onMessageReceived(new RequestBuyMessage("Test2", 102, "test"));
+        sellerLogic.onMessageReceived(new RequestBuyMessage("Test3", 103, "test"));
+        sellerLogic.onMessageReceived(new HaveMoneyMessage("Test3", new File("test", 103)));
         System.out.println(sellerLogic.getFiles());
     }
 }
