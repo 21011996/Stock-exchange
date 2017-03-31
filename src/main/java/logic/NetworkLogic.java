@@ -2,6 +2,8 @@ package logic;
 
 import messages.Message;
 
+import java.util.function.Consumer;
+
 /**
  * Created by heat_wave on 30.03.17.
  */
@@ -22,4 +24,8 @@ public class NetworkLogic {
      * The "real" message transfer mechanism. Uses a node's network address to send the data.
      */
     private void send() {};
+
+    public void addMessageHandler(Consumer<? super AddressedMessage> handler) {
+        //todo ensure that the consumer is called when messages arrive
+    }
 }
