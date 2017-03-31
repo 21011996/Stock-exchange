@@ -77,7 +77,8 @@ public class SellerLogic {
             }
         } else if (message instanceof HaveMoneyMessage) {
             String requestedFile = ((HaveMoneyMessage) message).getFile().getName();
-            if (acceptedRequests.get(requestedFile).getNode().equals(message.getName())) {
+            if (acceptedRequests.containsKey(requestedFile) &&
+                    acceptedRequests.get(requestedFile).getNode().equals(message.getName())) {
                 parent.sendMessage(Node.STUB.getName(), new TransferFileMessage(parent.getName(), files.get(requestedFile)));
                 File details = files.get(requestedFile);
                 details.setPrice(acceptedRequests.get(requestedFile).getOffer());
@@ -92,7 +93,8 @@ public class SellerLogic {
             }
         } else if (message instanceof BrokeMessage) {
             String fileName = ((BrokeMessage) message).getFile().getName();
-            if (acceptedRequests.get(fileName).getNode().equals(message.getName())) {
+            if (acceptedRequests.containsKey(fileName) &&
+                    acceptedRequests.get(fileName).getNode().equals(message.getName())) {
                 acceptedRequests.remove(fileName);
                 System.out.println(String.format("Node %s has failed to pay for the file and has been removed from contention.", message.getName()));
                 ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
@@ -118,7 +120,7 @@ public class SellerLogic {
             System.out.println(String.format("#%d bid: %7d from node %s", i + 1,
                     requests.get(i).getOffer(), requests.get(i).getNode()));
         }
-        if (interactive) {
+        if (interactive && requests.size() > 0) {
             System.out.println("Enter the number of a node to accept offer (anything else to ignore all offers): ");
             String input = in.nextLine();
             try {
@@ -127,7 +129,7 @@ public class SellerLogic {
                     acceptOffer(filename, requests.get(choice - 1));
                 }
             } catch (NumberFormatException e) {
-                System.out.println("Wrong input format");
+                System.out.println("Wrong input format; bids are ignored.");
             }
         }
     }
