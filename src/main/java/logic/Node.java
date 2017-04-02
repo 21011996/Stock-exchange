@@ -36,10 +36,10 @@ public class Node {
 
         logger.info("Starting sendingThread");
         sendingThread = new Thread(this::sendMessagesLoop);
-        sendingThread.run();
+        sendingThread.start();
         logger.info("Starting handlingThread");
         handlingThread = new Thread(this::handleMessagesLoop);
-        handlingThread.run();
+        handlingThread.start();
     }
 
     public Node(String name, ParticipantState participantState, boolean stub) {
@@ -59,11 +59,16 @@ public class Node {
         }
     }
 
+    public ParticipantState getCurrentState() {
+        return currentState;
+    }
+
     public String getName() {
         return name;
     }
 
     public void shutdown() {
+        logger.info("Shutting down node {}", name);
         sendingThread.interrupt();
         handlingThread.interrupt();
     }
@@ -91,6 +96,10 @@ public class Node {
         buyerLogic.onMessageReceived(message);
     }
 
+    public void addMessage(Message message) throws InterruptedException {
+        messagesToHandle.add(message);
+        logger.info("messagesToHandle {}", messagesToHandle.toString());
+    }
     // Run in a separate thread
     private void handleMessagesLoop() {
         while (!Thread.interrupted()) {

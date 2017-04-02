@@ -1,11 +1,14 @@
 import files.File;
-import logic.SellerLogic;
+import logic.Node;
+import logic.ParticipantState;
 import messages.HaveMoneyMessage;
 import messages.RequestBuyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static logic.Node.STUB;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * @author @ilya2
@@ -14,19 +17,17 @@ import static logic.Node.STUB;
 public class Main {
     private Logger logger = LoggerFactory.getLogger(Main.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         new Main().run();
     }
 
-    public void run() {
-        SellerLogic sellerLogic;
-        //Node node = new Node("TestNode", new ParticipantState(100, Collections.singletonList(new File("test", 100)), new HashSet<>(), new HashMap<>()));
-        sellerLogic = new SellerLogic(STUB);
-        sellerLogic.addFile(new File("test", 100));
-        sellerLogic.onMessageReceived(new RequestBuyMessage("Test", 101, "test"));
-        sellerLogic.onMessageReceived(new RequestBuyMessage("Test2", 102, "test"));
-        sellerLogic.onMessageReceived(new RequestBuyMessage("Test3", 103, "test"));
-        sellerLogic.onMessageReceived(new HaveMoneyMessage("Test3", new File("test", 103)));
-        System.out.println(sellerLogic.getFiles());
+    public void run() throws InterruptedException {
+        Node node = new Node("TestNode", new ParticipantState(100, Collections.singletonList(new File("test", 100)), new HashSet<>(), new HashMap<>()));
+        node.addMessage(new RequestBuyMessage("Test", 101, "test"));
+        node.addMessage(new RequestBuyMessage("Test2", 102, "test"));
+        node.addMessage(new RequestBuyMessage("Test3", 103, "test"));
+        node.addMessage(new HaveMoneyMessage("Test3", new File("test", 103)));
+        System.out.println(node.getCurrentState().getDocuments());
+        //node.shutdown();
     }
 }
