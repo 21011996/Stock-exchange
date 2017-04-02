@@ -1,6 +1,5 @@
 package network
 
-import java.util.*
 import java.net.DatagramPacket
 import java.net.InetAddress
 import java.net.MulticastSocket
@@ -18,11 +17,11 @@ class ResponseToRequestName(name: String) : HandshakeMessage(name)
 data class NodeInfo(val address: InetAddress, val port: Int)
 
 fun main(args: Array<String>) {
-    val addressBook = ConcurrentHashMap<NodeInfo, String>()
-    InputDataThread("main-1", addressBook).run()
+    val addressBook = ConcurrentHashMap<String, NodeInfo>()
+    InputDataThread("main-3", addressBook).run()
 }
 
-class InputDataThread(val nodeName: String, val addressBook: ConcurrentHashMap<NodeInfo, String>) : Thread("InputDataThread") {
+class InputDataThread(val nodeName: String, val addressBook: ConcurrentHashMap<String, NodeInfo>) : Thread("InputDataThread") {
 
     val HELLO_PREFIX = "hello.from"
     val RESPONSE_PREFIX = "response.from"
@@ -58,22 +57,24 @@ class InputDataThread(val nodeName: String, val addressBook: ConcurrentHashMap<N
                 if (received.startsWith(HELLO_PREFIX)) {
                     val name = received.split(' ')[1]
                     if (name == nodeName) {
-                        println("get message from self")
+                        println("get hello message from self")
                     } else {
-                        addressBook.put(NodeInfo(address, port), name)
-                        println("book names: ${addressBook.values.joinToString(", ")}")
+                        addressBook.put(name, NodeInfo(address, port))
+                        println("book names: ${addressBook.keys.joinToString(", ")}")
+                        buf = "$RESPONSE_PREFIX $nodeName".toByteArray()
+                        packet = DatagramPacket(buf, buf.size, address, 4446)
+                        sendSocket.send(packet)
                     }
+                } else if (received.startsWith(RESPONSE_PREFIX)) {
+                    val name = received.split(' ')[1]
+                    addressBook.put(name, NodeInfo(address, port))
+                    println("book names: ${addressBook.keys.joinToString(", ")}")
                 }
-
-
-                buf = "${Date()}: my name is $nodeName".toByteArray()
-
-                packet = DatagramPacket(buf, buf.size, address, port)
-                receiveSocket.send(packet)
 
             } catch (e: Exception) {
                 receiveSocket.leaveGroup(address)
                 receiveSocket.close()
+                sendSocket.close()
             }
         }
     }
