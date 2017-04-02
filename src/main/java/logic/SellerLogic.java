@@ -60,6 +60,7 @@ public class SellerLogic {
 
     /**
      * Primary method of this class. Handles the bidding logic according to the type of incoming message.
+     *
      * @param message The network message to handle
      */
     public void onMessageReceived(Message message) {
@@ -74,7 +75,6 @@ public class SellerLogic {
             } else {
                 purchaseRequests.putIfAbsent(filename, new ArrayList<>());
                 purchaseRequests.get(filename).add(new PurchaseRequest(message.getName(), price));
-                printBidStatus(filename, true);
             }
         } else if (message instanceof HaveMoneyMessage) {
             String requestedFile = ((HaveMoneyMessage) message).getFile().getName();
@@ -106,7 +106,6 @@ public class SellerLogic {
                 ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
                 requests.removeIf(purchaseRequest -> purchaseRequest.getNode().equals(message.getName()));
                 //AFAIR this should remove the request from the mapped arraylist, too
-                printBidStatus(fileName, true);
             } else {
                 logger.debug("Insufficient funds message without previous accepted bid. The message could have been fabricated. Malicious node: {}", message.getName());
             }
@@ -115,10 +114,10 @@ public class SellerLogic {
 
     /**
      * Prints a single file's bids to the standard output. When in interactive mode, allows to choose a bid to accept.
+     *
      * @param filename The file to show status for
-     * @param interactive Whether to interact with the user
      */
-    private void printBidStatus(String filename, boolean interactive) {
+    public void printBidStatus(String filename) {
         ArrayList<PurchaseRequest> requests = purchaseRequests.get(filename);
         requests.sort(Comparator.comparingInt(PurchaseRequest::getOffer).reversed());
         System.out.println(String.format("Bids for file %s(base price is %d) now: %d", filename, files.get(filename).getPrice(), requests.size()));
@@ -126,26 +125,30 @@ public class SellerLogic {
             System.out.println(String.format("#%d bid: %7d from node %s", i + 1,
                     requests.get(i).getOffer(), requests.get(i).getNode()));
         }
-        if (interactive && requests.size() > 0) {
-            System.out.println("Enter the number of a node to accept offer (\"0\" to reject all offers): ");
-            String input = in.nextLine();
-            try {
-                int choice = Integer.parseInt(input);
-                if (choice > 0 && choice <= requests.size()) {
-                    acceptOffer(filename, requests.get(choice - 1));
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Wrong input format; bids are ignored.");
+
+    }
+
+    public void sellFile(String fileName, String node) {
+        ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
+        boolean sold = false;
+        for (PurchaseRequest pr : requests) {
+            if (node.equals(pr.getNode())) {
+                acceptOffer(fileName, pr);
+                sold = true;
+                break;
             }
+        }
+        if (!sold) {
+            System.out.println(String.format("%s doesn't want to buy %s", node, fileName));
         }
     }
 
     /**
      * Utility method. Prints current status for all files
      */
-    private void printAllBids() {
+    public void printAllBids() {
         for (String filename : files.keySet()) {
-            printBidStatus(filename, false);
+            printBidStatus(filename);
         }
     }
 
