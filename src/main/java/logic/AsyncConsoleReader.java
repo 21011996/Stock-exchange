@@ -14,16 +14,16 @@ import java.util.Scanner;
  * infoall - returns information about all files
  * exit - terminates program
  */
-public class ConsoleThread implements Runnable {
+public class AsyncConsoleReader implements Runnable {
 
     private final SellerLogic sellerLogic;
     private final InputStream input;
 
-    public ConsoleThread(SellerLogic sellerLogic) {
+    public AsyncConsoleReader(SellerLogic sellerLogic) {
         this(sellerLogic, System.in);
     }
 
-    public ConsoleThread(SellerLogic sellerLogic, InputStream input) {
+    public AsyncConsoleReader(SellerLogic sellerLogic, InputStream input) {
         this.sellerLogic = sellerLogic;
         this.input = input;
     }
@@ -37,10 +37,13 @@ public class ConsoleThread implements Runnable {
             switch (request[0]) {
                 case "info":
                     sellerLogic.printBidStatus(request[1]);
+                    break;
                 case "sell":
                     sellerLogic.sellFile(request[1], request[2]);
+                    break;
                 case "infoall":
                     sellerLogic.printAllBids();
+                    break;
                 case "exit":
                     System.exit(0);//kek
                 default:

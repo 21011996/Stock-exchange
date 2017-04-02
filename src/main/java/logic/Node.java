@@ -25,6 +25,9 @@ public class Node {
     private final BlockingQueue<Message> messagesToHandle = new LinkedBlockingDeque<>();
     private final Thread sendingThread;
     private final Thread handlingThread;
+    private final Thread consoleThread;
+    private final AsyncConsoleReader asyncConsoleReader;
+
     private Logger logger = LoggerFactory.getLogger(Node.class);
     private ParticipantState currentState;
 
@@ -34,6 +37,10 @@ public class Node {
         sellerLogic = new SellerLogic(this, currentState.getDocuments());
         networkLogic.addMessageHandler(messagesToHandle::add);
 
+        logger.info("Starting consoleThread");
+        asyncConsoleReader = new AsyncConsoleReader(sellerLogic);
+        consoleThread = new Thread(asyncConsoleReader);
+        consoleThread.start();
         logger.info("Starting sendingThread");
         sendingThread = new Thread(this::sendMessagesLoop);
         sendingThread.start();
@@ -47,11 +54,15 @@ public class Node {
         this.currentState = participantState;
         sellerLogic = new SellerLogic(this, currentState.getDocuments());
         networkLogic.addMessageHandler(messagesToHandle::add);
+        asyncConsoleReader = new AsyncConsoleReader(sellerLogic);
 
         if (stub) {
             sendingThread = new Thread(this::sendMessagesLoop);
             handlingThread = new Thread(this::handleMessagesLoop);
+            consoleThread = new Thread(asyncConsoleReader);
         } else {
+            consoleThread = new Thread(asyncConsoleReader);
+            consoleThread.start();
             sendingThread = new Thread(this::sendMessagesLoop);
             sendingThread.run();
             handlingThread = new Thread(this::handleMessagesLoop);
