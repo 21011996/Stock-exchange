@@ -31,7 +31,7 @@ public class Node {
         networkLogic.addMessageHandler(messagesToHandle::add);
 
         logger.info("Starting consoleThread");
-        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
+        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic, buyerLogic);
         consoleThread = new Thread(asyncConsoleReader);
         consoleThread.start();
       
@@ -51,7 +51,7 @@ public class Node {
         networkLogic.addMessageHandler(messagesToHandle::add);
 
         logger.info("Starting consoleThread");
-        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
+        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic, buyerLogic);
         consoleThread = new Thread(asyncConsoleReader);
         consoleThread.start();
       

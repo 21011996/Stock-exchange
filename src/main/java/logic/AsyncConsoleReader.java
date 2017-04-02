@@ -19,16 +19,18 @@ import static java.lang.Thread.interrupted;
 public class AsyncConsoleReader implements Runnable {
 
     private final SellerLogic sellerLogic;
+    private final BuyerLogic buyerLogic;
     private final InputStream input;
     private final Node parent;
 
-    public AsyncConsoleReader(Node parent, SellerLogic sellerLogic) {
-        this(parent, sellerLogic, System.in);
+    public AsyncConsoleReader(Node parent, SellerLogic sellerLogic, BuyerLogic buyerLogic) {
+        this(parent, sellerLogic, buyerLogic, System.in);
     }
 
-    public AsyncConsoleReader(Node parent, SellerLogic sellerLogic, InputStream input) {
+    public AsyncConsoleReader(Node parent, SellerLogic sellerLogic, BuyerLogic buyerLogic, InputStream input) {
         this.parent = parent;
         this.sellerLogic = sellerLogic;
+        this.buyerLogic = buyerLogic;
         this.input = input;
     }
 
@@ -55,6 +57,8 @@ public class AsyncConsoleReader implements Runnable {
                     parent.shutdown();
                     Thread.currentThread().interrupt();
                     break;
+                case "listfiles":
+
                 //TODO add cases for buyer logic
                 default:
                     System.out.println("Can't parse your request");
