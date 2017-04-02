@@ -6,9 +6,7 @@ import messages.RequestBuyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 
 /**
  * @author @ilya2
@@ -22,10 +20,13 @@ public class Main {
     }
 
     public void run() throws InterruptedException {
-        Node node = new Node("TestNode", new ParticipantState(100, Collections.singletonList(new File("test", 100)), new HashSet<>(), new HashMap<>()));
+        Node node = new Node("TestNode", new ParticipantState(100, new HashMap<String, File>() {{
+            put("test", new File("test", 100));
+        }}));
         node.addMessage(new RequestBuyMessage("Test", 101, "test"));
         node.addMessage(new RequestBuyMessage("Test2", 102, "test"));
         node.addMessage(new RequestBuyMessage("Test3", 103, "test"));
+        Thread.sleep(10000);
         node.addMessage(new HaveMoneyMessage("Test3", new File("test", 103)));
         System.out.println(node.getCurrentState().getDocuments());
         //node.shutdown();
