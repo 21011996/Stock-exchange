@@ -16,6 +16,9 @@ public class Node {
     private final BlockingQueue<Message> messagesToHandle = new LinkedBlockingDeque<>();
     private final Thread sendingThread;
     private final Thread handlingThread;
+    private final Thread consoleThread;
+    private final AsyncConsoleReader asyncConsoleReader;
+
     private Logger logger = LoggerFactory.getLogger(Node.class);
     private ParticipantState currentState;
 
@@ -26,8 +29,15 @@ public class Node {
         buyerLogic = new BuyerLogic(this);
         networkLogic.addMessageHandler(messagesToHandle::add);
 
+        logger.info("Starting consoleThread");
+        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
+        consoleThread = new Thread(asyncConsoleReader);
+        consoleThread.start();
+      
+        logger.info("Starting sendingThread");
         sendingThread = new Thread(this::sendMessagesLoop);
         sendingThread.start();
+        logger.info("Starting handlingThread");
         handlingThread = new Thread(this::handleMessagesLoop);
         handlingThread.start();
     }
@@ -38,7 +48,13 @@ public class Node {
         sellerLogic = new SellerLogic(this);
         buyerLogic = new BuyerLogic(this);
         networkLogic.addMessageHandler(messagesToHandle::add);
+        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
 
+        logger.info("Starting consoleThread");
+        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
+        consoleThread = new Thread(asyncConsoleReader);
+        consoleThread.start();
+      
         sendingThread = new Thread(this::sendMessagesLoop);
         handlingThread = new Thread(this::handleMessagesLoop);
     }
@@ -65,6 +81,7 @@ public class Node {
         logger.info("Shutting down node {}", name);
         sendingThread.interrupt();
         handlingThread.interrupt();
+        consoleThread.interrupt();
     }
 
     void sendMessage(Message message) {
