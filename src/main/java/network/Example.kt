@@ -17,7 +17,7 @@ class ResponseToRequestName(name: String) : HandshakeMessage(name)
 
 fun main(args: Array<String>) {
     val addressBook = ConcurrentHashMap<String, Socket>()
-    IOThread("laptop-1", addressBook).run()
+    IOThread("main-1", addressBook).run()
     //InputDataThread("main-3", addressBook).run()
 }
 
@@ -36,12 +36,6 @@ class IOThread(val nodeName: String, val addressBook: ConcurrentHashMap<String, 
 
     override fun run() {
         println("node $nodeName")
-        var packet: DatagramPacket
-
-        var buf = "!!".toByteArray()
-        packet = DatagramPacket(buf, buf.size, address, 4446)
-        //sendSocket.send(packet)
-        receiveSocket.send(packet)
 
         Thread({
             var socket: Socket? = null
@@ -55,6 +49,7 @@ class IOThread(val nodeName: String, val addressBook: ConcurrentHashMap<String, 
 
                         var line: String?
                         while (true) {
+                            println("start tcp read cycle for $socket")
                             try {
 
                                 line = input.readLine()
@@ -62,7 +57,7 @@ class IOThread(val nodeName: String, val addressBook: ConcurrentHashMap<String, 
                                 if (line == null)
                                     continue
                                 if (line.startsWith(HELLO_PREFIX)) {
-                                    val name = line.split(' ')[1]
+                                    val name = line.split(' ')[1].dropLast(1)
                                     println("get hello from: $name")
                                     if (name == nodeName) {
                                         println("... hello from self")
@@ -70,10 +65,10 @@ class IOThread(val nodeName: String, val addressBook: ConcurrentHashMap<String, 
                                     }
                                     addressBook[name] = socket!!
                                     println("book names: ${addressBook.keys.joinToString(", ")}")
-                                    output.writeBytes("$RESPONSE_PREFIX $nodeName")
+                                    output.writeBytes("$RESPONSE_PREFIX $nodeName\n")
                                     output.flush()
                                 } else if (line.startsWith(RESPONSE_PREFIX)) {
-                                    val name = line.split(' ')[1]
+                                    val name = line.split(' ')[1].dropLast(1)
                                     println("get response from: $name")
                                     addressBook[name] = socket!!
                                     println("book names: ${addressBook.keys.joinToString(", ")}")
@@ -90,6 +85,12 @@ class IOThread(val nodeName: String, val addressBook: ConcurrentHashMap<String, 
             }
         }).start()
 
+        var packet: DatagramPacket
+        var buf = "!!".toByteArray()
+        packet = DatagramPacket(buf, buf.size, address, 4446)
+        //sendSocket.send(packet)
+        receiveSocket.send(packet)
+
         while (true) {
             packet = DatagramPacket(buf, buf.size)
             receiveSocket.receive(packet)
@@ -99,7 +100,7 @@ class IOThread(val nodeName: String, val addressBook: ConcurrentHashMap<String, 
 
             val clientSocket = Socket(packet.address, 4450)
             val outToServer = DataOutputStream(clientSocket.getOutputStream())
-            outToServer.writeBytes("$HELLO_PREFIX $nodeName")
+            outToServer.writeBytes("$HELLO_PREFIX $nodeName\n")
             outToServer.flush()
 
         }
