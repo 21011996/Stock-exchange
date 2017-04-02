@@ -115,12 +115,16 @@ public class SellerLogic {
     /**
      * Prints a single file's bids to the standard output. When in interactive mode, allows to choose a bid to accept.
      *
-     * @param filename The file to show status for
+     * @param fileName The file to show status for
      */
-    public void printBidStatus(String filename) {
-        ArrayList<PurchaseRequest> requests = purchaseRequests.get(filename);
+    public void printBidStatus(String fileName) {
+        if (!purchaseRequests.containsKey(fileName)) {
+            System.out.println("No such file");
+            return;
+        }
+        ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
         requests.sort(Comparator.comparingInt(PurchaseRequest::getOffer).reversed());
-        System.out.println(String.format("Bids for file %s(base price is %d) now: %d", filename, files.get(filename).getPrice(), requests.size()));
+        System.out.println(String.format("Bids for file %s(base price is %d) now: %d", fileName, files.get(fileName).getPrice(), requests.size()));
         for (int i = 0; i < requests.size(); i++) {
             System.out.println(String.format("#%d bid: %7d from node %s", i + 1,
                     requests.get(i).getOffer(), requests.get(i).getNode()));
@@ -129,6 +133,10 @@ public class SellerLogic {
     }
 
     public void sellFile(String fileName, String node) {
+        if (!purchaseRequests.containsKey(fileName)) {
+            System.out.println("No such file");
+            return;
+        }
         ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
         boolean sold = false;
         for (PurchaseRequest pr : requests) {
