@@ -1,6 +1,7 @@
 package logic;
 
 import messages.Message;
+import model.Envelope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,7 @@ public class Node {
     private final NetworkLogic networkLogic = new NetworkLogic();
     private final SellerLogic sellerLogic;
     private final BuyerLogic buyerLogic;
-    private final BlockingQueue<Message> messagesToSend = new LinkedBlockingDeque<>();
+    private final BlockingQueue<Envelope> messagesToSend = new LinkedBlockingDeque<>();
     private final BlockingQueue<Message> messagesToHandle = new LinkedBlockingDeque<>();
     private final Thread sendingThread;
     private final Thread handlingThread;
@@ -84,9 +85,9 @@ public class Node {
         consoleThread.interrupt();
     }
 
-    void sendMessage(Message message) {
-        logger.info("Sending {}", message.toString());
-        messagesToSend.add(message);
+    void sendMessage(String to, Message message) {
+        logger.info("Sending {} to {}", message.toString(), to);
+        messagesToSend.add(new Envelope(to, message));
     }
 
     // Run in a separate thread
@@ -94,8 +95,8 @@ public class Node {
         Thread.currentThread().setName("SendMessagesLoop");
         while (!Thread.interrupted()) {
             try {
-                Message m = messagesToSend.take();
-                networkLogic.send(m.getName(), m);
+                Envelope m = messagesToSend.take();
+                networkLogic.send(m.getDestination(), m.getMessage());
             } catch (InterruptedException e) {
                 break;
             }
