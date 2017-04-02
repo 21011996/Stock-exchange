@@ -48,7 +48,7 @@ public class Node {
         sellerLogic = new SellerLogic(this);
         buyerLogic = new BuyerLogic(this);
         networkLogic.addMessageHandler(messagesToHandle::add);
-        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
+        //asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
 
         logger.info("Starting consoleThread");
         asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
