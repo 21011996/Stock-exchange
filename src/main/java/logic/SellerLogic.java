@@ -82,11 +82,11 @@ public class SellerLogic {
                     acceptedRequests.get(requestedFile).getNode().equals(message.getName())) {
                 File toTransfer = files.get(requestedFile);
                 toTransfer.setPrice(acceptedRequests.get(requestedFile).getOffer());
-                parent.sendMessage(Node.STUB.getName(), new TransferFileMessage(parent.getName(), toTransfer));
+                parent.sendMessage(new TransferFileMessage(parent.getName(), toTransfer));
                 File details = files.get(requestedFile);
                 details.setPrice(acceptedRequests.get(requestedFile).getOffer());
                 for (PurchaseRequest request : purchaseRequests.get(requestedFile)) {
-                    parent.sendMessage(request.getNode(), new NotifyBuyMessage(requestSender, details));
+                    parent.sendMessage(new NotifyBuyMessage(requestSender, details));
                 }
                 files.remove(requestedFile);
                 purchaseRequests.remove(requestedFile);
@@ -147,7 +147,7 @@ public class SellerLogic {
     }
 
     private void acceptOffer(String filename, PurchaseRequest offer) {
-        parent.sendMessage(offer.getNode(), new AcceptBuyMessage(parent.getName(), filename));
+        parent.sendMessage(new AcceptBuyMessage(parent.getName(), filename));
         acceptedRequests.put(filename, offer);
     }
 
