@@ -39,7 +39,8 @@ public class SellerLogicTest {
     }
 
     @Test
-    public void Test() throws Throwable{
+    public void onMessageReceived() throws Throwable{
+
 
     }
 
