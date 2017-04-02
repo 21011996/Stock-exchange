@@ -1,7 +1,6 @@
 package logic;
 
 import files.File;
-import messages.RequestBuyMessage;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,12 +36,6 @@ public class SellerLogicTest {
         File testFile = new File("testfile", 100);
         sellerLogic.addFile(testFile);
         assertEquals(testFile, sellerLogic.getFile(testFile.getName()));
-    }
-
-    @Test
-    public void onMessageReceived() throws Exception {
-        sellerLogic.addFile(new File("test", 100));
-        sellerLogic.onMessageReceived(new RequestBuyMessage("Test", 101, "test"));
     }
 
 

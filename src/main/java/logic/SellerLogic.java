@@ -3,15 +3,15 @@ package logic;
 import files.File;
 import messages.*;
 import model.PurchaseRequest;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by heat_wave on 30.03.17.
  */
 public class SellerLogic {
+    private org.slf4j.Logger logger = LoggerFactory.getLogger(SellerLogic.class);
     private HashMap<String, File> files = new HashMap<>();
     private HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
     private HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
@@ -41,9 +41,9 @@ public class SellerLogic {
     public void addFile(File file) {
         if (files.containsKey(file.getName())) {
             if (!files.get(file.getName()).equals(file)) {
-                Logger.getGlobal().log(Level.SEVERE, "Filename uniqueness violated");
+                logger.error("Filename uniqueness violated");
             } else {
-                Logger.getGlobal().log(Level.WARNING, "Repetitive addition of the same file detected");
+                logger.warn("Repetitive addition of the same file detected");
             }
         } else {
             files.put(file.getName(), file);
@@ -63,13 +63,14 @@ public class SellerLogic {
      * @param message The network message to handle
      */
     public void onMessageReceived(Message message) {
-        Logger.getGlobal().log(Level.FINER, message.toString());
+        logger.info("Received {}", message.toString());
 
         if (message instanceof RequestBuyMessage) {
             String filename = ((RequestBuyMessage) message).getRequestFile();
+            logger.debug("Adding request to bids for file {}", filename);
             int price = ((RequestBuyMessage) message).getRequestPrice();
             if (!files.containsKey(filename)) {
-                Logger.getGlobal().log(Level.WARNING, "Request received for nonexistent file: " + filename);
+                logger.warn("Request received for nonexistent file: {}", filename);
             } else {
                 purchaseRequests.putIfAbsent(filename, new ArrayList<>());
                 purchaseRequests.get(filename).add(new PurchaseRequest(message.getName(), price));
@@ -78,6 +79,7 @@ public class SellerLogic {
         } else if (message instanceof HaveMoneyMessage) {
             String requestedFile = ((HaveMoneyMessage) message).getFile().getName();
             String requestSender = message.getName();
+            logger.debug("Received money for {}", requestedFile);
             if (acceptedRequests.containsKey(requestedFile) &&
                     acceptedRequests.get(requestedFile).getNode().equals(message.getName())) {
                 File toTransfer = files.get(requestedFile);
@@ -92,10 +94,11 @@ public class SellerLogic {
                 purchaseRequests.remove(requestedFile);
                 acceptedRequests.remove(requestedFile);
             } else {
-                Logger.getGlobal().log(Level.SEVERE, "Attempting to force-buy the file. The message could have been fabricated. Malicious node: " + message.getName());
+                logger.debug("Attempting to force-buy the file. The message could have been fabricated. Malicious node: {}", message.getName());
             }
         } else if (message instanceof BrokeMessage) {
             String fileName = ((BrokeMessage) message).getFile().getName();
+            logger.debug("Node couldn't send money for {}", fileName);
             if (acceptedRequests.containsKey(fileName) &&
                     acceptedRequests.get(fileName).getNode().equals(message.getName())) {
                 acceptedRequests.remove(fileName);
@@ -105,7 +108,7 @@ public class SellerLogic {
                 //AFAIR this should remove the request from the mapped arraylist, too
                 printBidStatus(fileName, true);
             } else {
-                Logger.getGlobal().log(Level.SEVERE, "Insufficient funds message without previous accepted bid. The message could have been fabricated. Malicious node: " + message.getName());
+                logger.debug("Insufficient funds message without previous accepted bid. The message could have been fabricated. Malicious node: {}", message.getName());
             }
         }
     }
