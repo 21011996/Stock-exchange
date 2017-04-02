@@ -12,7 +12,7 @@ import java.util.*;
  */
 public class SellerLogic {
     private org.slf4j.Logger logger = LoggerFactory.getLogger(SellerLogic.class);
-    private HashMap<String, File> files = new HashMap<>();
+    private HashMap<String, File> files;
     private HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
     private HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
 
@@ -21,6 +21,7 @@ public class SellerLogic {
 
     public SellerLogic(Node parent) {
         this.parent = parent;
+        files = parent.getCurrentState().getDocuments();
     }
 
     public SellerLogic(Node parent, Collection<File> collection) {
