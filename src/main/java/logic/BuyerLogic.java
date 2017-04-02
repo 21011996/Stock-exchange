@@ -19,7 +19,6 @@ public class BuyerLogic {
     ArrayList<File> requested = new ArrayList<>();
     HashMap<String, Node> fileNodes = new HashMap<>();
     ArrayList<String> waitFiles = new ArrayList<>();
-<<<<<<< HEAD
     Logger logger = LoggerFactory.getLogger(BuyerLogic.class);
 
     Node parent;
