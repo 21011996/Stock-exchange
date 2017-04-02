@@ -4,38 +4,47 @@ import java.util.*
 import java.net.DatagramPacket
 import java.net.InetAddress
 import java.net.MulticastSocket
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Created by kirill on 02.04.17.
  */
 
+sealed class HandshakeMessage(val senderName: String)
+
+class RequestName(name: String) : HandshakeMessage(name)
+class ResponseToRequestName(name: String) : HandshakeMessage(name)
+
+data class NodeInfo(val address: InetAddress, val port: Int)
+
 fun main(args: Array<String>) {
-    InputDataThread("main-2", 5000).run()
-    //InputDataThread("main-2", 5000).run()
+    val addressBook = ConcurrentHashMap<NodeInfo, String>()
+    InputDataThread("main-1", addressBook).run()
 }
 
-class InputDataThread(val nodeName: String, val sleepTime: Long) : Thread("InputDataThread") {
+class InputDataThread(val nodeName: String, val addressBook: ConcurrentHashMap<NodeInfo, String>) : Thread("InputDataThread") {
+
+    val HELLO_PREFIX = "hello.from"
+    val RESPONSE_PREFIX = "response.from"
 
     val receiveSocket = MulticastSocket(4446)
     val sendSocket = MulticastSocket(4445)
-    val address: InetAddress = InetAddress.getByName("230.0.0.1") //TODO: change address
+    val address: InetAddress = InetAddress.getByName("239.0.0.1") //TODO: change address
 
     init {
         receiveSocket.joinGroup(address)
     }
 
     override fun run() {
+        println("node $nodeName")
         var packet: DatagramPacket
-        sleep(sleepTime)
 
-        var buf = ByteArray(256)
-        buf = "hello, my name is $nodeName".toByteArray()
+        var buf = "$HELLO_PREFIX $nodeName".toByteArray()
 
         packet = DatagramPacket(buf, buf.size, address, 4446)
         sendSocket.send(packet)
 
         while (true) {
-            //sleep(sleepTime)
             try {
                 packet = DatagramPacket(buf, buf.size)
                 receiveSocket.receive(packet)
@@ -45,6 +54,17 @@ class InputDataThread(val nodeName: String, val sleepTime: Long) : Thread("Input
 
                 val address = packet.address
                 val port = packet.port
+
+                if (received.startsWith(HELLO_PREFIX)) {
+                    val name = received.split(' ')[1]
+                    if (name == nodeName) {
+                        println("get message from self")
+                    } else {
+                        addressBook.put(NodeInfo(address, port), name)
+                        println("book names: ${addressBook.values.joinToString(", ")}")
+                    }
+                }
+
 
                 buf = "${Date()}: my name is $nodeName".toByteArray()
 
