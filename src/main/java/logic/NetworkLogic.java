@@ -25,7 +25,7 @@ public class NetworkLogic {
      */
     private void send() {};
 
-    public void addMessageHandler(Consumer<? super AddressedMessage> handler) {
+    public void addMessageHandler(Consumer<? super Message> handler) {
         //todo ensure that the consumer is called when messages arrive
     }
 }
