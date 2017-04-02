@@ -38,5 +38,10 @@ public class SellerLogicTest {
         assertEquals(testFile, sellerLogic.getFile(testFile.getName()));
     }
 
+    @Test
+    public void Test() throws Throwable{
+
+    }
+
 
 }
