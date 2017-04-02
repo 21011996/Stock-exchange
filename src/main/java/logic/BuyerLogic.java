@@ -6,12 +6,11 @@ import messages.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
 /**
  * Created by shambala on 02.04.17.
  */
@@ -20,6 +19,7 @@ public class BuyerLogic {
     ArrayList<File> requested = new ArrayList<>();
     HashMap<String, Node> fileNodes = new HashMap<>();
     ArrayList<String> waitFiles = new ArrayList<>();
+<<<<<<< HEAD
     Logger logger = LoggerFactory.getLogger(BuyerLogic.class);
 
     Node parent;
@@ -51,6 +51,7 @@ public class BuyerLogic {
             String name = ((AcceptBuyMessage) message).getFileName();
             if (!requested.stream().map(x -> x.getName()).collect(Collectors.toList()).contains(name)) {
                 logger.warn("Accept without request");
+
             } else {
                 File acceptedFile = null;
                 for (File file : requested) {
@@ -85,3 +86,4 @@ public class BuyerLogic {
         return new ArrayList<>();
     }
 }
+
