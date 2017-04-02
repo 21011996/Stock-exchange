@@ -6,6 +6,8 @@ import messages.RequestBuyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
 import java.util.HashMap;
 
 /**
@@ -20,15 +22,27 @@ public class Main {
     }
 
     public void run() throws InterruptedException {
+        Thread.currentThread().setName("Main");
+
         Node node = new Node("TestNode", new ParticipantState(100, new HashMap<String, File>() {{
             put("test", new File("test", 100));
         }}));
+        ThreadInfo[] threads = ManagementFactory.getThreadMXBean()
+                .dumpAllThreads(true, true);
+        for (final ThreadInfo info : threads)
+            System.out.print(info);
         node.addMessage(new RequestBuyMessage("Test", 101, "test"));
         node.addMessage(new RequestBuyMessage("Test2", 102, "test"));
         node.addMessage(new RequestBuyMessage("Test3", 103, "test"));
         Thread.sleep(10000);
         node.addMessage(new HaveMoneyMessage("Test3", new File("test", 103)));
+        Thread.sleep(1000);
         System.out.println(node.getCurrentState().getDocuments());
-        //node.shutdown();
+        node.shutdown();
+        Thread.sleep(1000);
+        threads = ManagementFactory.getThreadMXBean()
+                .dumpAllThreads(true, true);
+        for (final ThreadInfo info : threads)
+            System.out.print(info);
     }
 }

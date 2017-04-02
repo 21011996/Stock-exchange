@@ -7,6 +7,8 @@ package logic;
 import java.io.InputStream;
 import java.util.Scanner;
 
+import static java.lang.Thread.interrupted;
+
 /**
  * Class to interact with console.
  * info "filename" - returns information about file
@@ -32,10 +34,11 @@ public class AsyncConsoleReader implements Runnable {
 
     @Override
     public void run() {
+        Thread.currentThread().setName(parent.getName() + "Console");
         Scanner in = new Scanner(input);
-        while (!Thread.interrupted()) {
+        while (!interrupted()) {
             String[] request = in.nextLine().split(" ");
-            if (Thread.interrupted())
+            if (interrupted())
                 break;
             //assuming that file names are one word
             switch (request[0]) {
@@ -50,6 +53,7 @@ public class AsyncConsoleReader implements Runnable {
                     break;
                 case "exit":
                     parent.shutdown();
+                    Thread.currentThread().interrupt();
                     break;
                 //TODO add cases for buyer logic
                 default:

@@ -24,6 +24,7 @@ public class Node {
 
     public Node(String name, ParticipantState participantState) {
         this.name = name;
+        Thread.currentThread().setName(this.getName());
         this.currentState = participantState;
         sellerLogic = new SellerLogic(this);
         buyerLogic = new BuyerLogic(this);
@@ -48,7 +49,6 @@ public class Node {
         sellerLogic = new SellerLogic(this);
         buyerLogic = new BuyerLogic(this);
         networkLogic.addMessageHandler(messagesToHandle::add);
-        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
 
         logger.info("Starting consoleThread");
         asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
@@ -91,6 +91,7 @@ public class Node {
 
     // Run in a separate thread
     private void sendMessagesLoop() {
+        Thread.currentThread().setName("SendMessagesLoop");
         while (!Thread.interrupted()) {
             try {
                 Message m = messagesToSend.take();
@@ -112,6 +113,7 @@ public class Node {
     }
     // Run in a separate thread
     private void handleMessagesLoop() {
+        Thread.currentThread().setName("HandleMessagesLoop");
         while (!Thread.interrupted()) {
             try {
                 Message m = messagesToHandle.take();
