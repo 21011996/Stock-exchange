@@ -26,6 +26,7 @@ public class Main {
         node.addMessage(new RequestBuyMessage("Test", 101, "test"));
         node.addMessage(new RequestBuyMessage("Test2", 102, "test"));
         node.addMessage(new RequestBuyMessage("Test3", 103, "test"));
+        Thread.sleep(10000);
         node.addMessage(new HaveMoneyMessage("Test3", new File("test", 103)));
         System.out.println(node.getCurrentState().getDocuments());
         //node.shutdown();

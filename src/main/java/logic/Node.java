@@ -32,13 +32,24 @@ public class Node {
         handlingThread.start();
     }
 
+    public Node(String name, ParticipantState participantState, int i) {
+        this.name = name;
+        this.currentState = participantState;
+        sellerLogic = new SellerLogic(this);
+        buyerLogic = new BuyerLogic(this);
+        networkLogic.addMessageHandler(messagesToHandle::add);
+
+        sendingThread = new Thread(this::sendMessagesLoop);
+        handlingThread = new Thread(this::handleMessagesLoop);
+    }
+
     public Node(String name, ParticipantState participantState, boolean stub) {
-        this(name, participantState);
+        this(name, participantState, 0);
         if (!stub) {
             logger.info("Starting sending thread");
-            sendingThread.run();
+            sendingThread.start();
             logger.info("Starting handling thread");
-            handlingThread.run();
+            handlingThread.start();
         }
     }
 
