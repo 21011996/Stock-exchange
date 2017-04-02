@@ -18,12 +18,14 @@ public class AsyncConsoleReader implements Runnable {
 
     private final SellerLogic sellerLogic;
     private final InputStream input;
+    private final Node parent;
 
-    public AsyncConsoleReader(SellerLogic sellerLogic) {
-        this(sellerLogic, System.in);
+    public AsyncConsoleReader(Node parent, SellerLogic sellerLogic) {
+        this(parent, sellerLogic, System.in);
     }
 
-    public AsyncConsoleReader(SellerLogic sellerLogic, InputStream input) {
+    public AsyncConsoleReader(Node parent, SellerLogic sellerLogic, InputStream input) {
+        this.parent = parent;
         this.sellerLogic = sellerLogic;
         this.input = input;
     }
@@ -31,8 +33,10 @@ public class AsyncConsoleReader implements Runnable {
     @Override
     public void run() {
         Scanner in = new Scanner(input);
-        while (true) {
+        while (!Thread.interrupted()) {
             String[] request = in.nextLine().split(" ");
+            if (Thread.interrupted())
+                break;
             //assuming that file names are one word
             switch (request[0]) {
                 case "info":
@@ -45,7 +49,9 @@ public class AsyncConsoleReader implements Runnable {
                     sellerLogic.printAllBids();
                     break;
                 case "exit":
-                    System.exit(0);//kek
+                    parent.shutdown();
+                    break;
+                //TODO add cases for buyer logic
                 default:
                     System.out.println("Can't parse your request");
             }

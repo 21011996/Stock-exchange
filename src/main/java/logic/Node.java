@@ -38,7 +38,7 @@ public class Node {
         networkLogic.addMessageHandler(messagesToHandle::add);
 
         logger.info("Starting consoleThread");
-        asyncConsoleReader = new AsyncConsoleReader(sellerLogic);
+        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
         consoleThread = new Thread(asyncConsoleReader);
         consoleThread.start();
         logger.info("Starting sendingThread");
@@ -54,7 +54,7 @@ public class Node {
         this.currentState = participantState;
         sellerLogic = new SellerLogic(this, currentState.getDocuments());
         networkLogic.addMessageHandler(messagesToHandle::add);
-        asyncConsoleReader = new AsyncConsoleReader(sellerLogic);
+        asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic);
 
         if (stub) {
             sendingThread = new Thread(this::sendMessagesLoop);
@@ -82,6 +82,7 @@ public class Node {
         logger.info("Shutting down node {}", name);
         sendingThread.interrupt();
         handlingThread.interrupt();
+        consoleThread.interrupt();
     }
 
     void sendMessage(Message message) {
