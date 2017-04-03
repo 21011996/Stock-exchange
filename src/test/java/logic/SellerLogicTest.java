@@ -1,6 +1,7 @@
 package logic;
 
 import files.File;
+import messages.HaveMoneyMessage;
 import messages.RequestBuyMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,9 +45,18 @@ public class SellerLogicTest {
 
     @Test
     public void sellFile() {
-        sellerLogic.addFile(new File("file1", 100));
-        sellerLogic.onMessageReceived(new RequestBuyMessage("wow", 90, "file1"));
-        assertEquals(sellerLogic.purchaseRequests.get("file1").size(), 1);
+       // sellerLogic.addFile(new File("file1", 100));
+        //assertEquals(sellerLogic.files.size(),1);
+        sellerLogic.onMessageReceived(new RequestBuyMessage("wow", 90, "test"));
+        assertEquals(sellerLogic.purchaseRequests.get("test").size(), 1);
+        assertEquals(sellerLogic.purchaseRequests.get("test").get(0).getNode(),"wow");
+        assertEquals(sellerLogic.purchaseRequests.get("test").get(0).getOffer(),90);
+        File test = new File("test", 90);
+        sellerLogic.acceptOffer("test",sellerLogic.purchaseRequests.get("test").get(0));
+        sellerLogic.onMessageReceived(new HaveMoneyMessage("wow", test));
+        assertEquals(sellerLogic.acceptedRequests.size(),0);
+        assertEquals(sellerLogic.purchaseRequests.size(),0);
+        assertEquals(sellerLogic.files.size(),0);
     }
 
 }
