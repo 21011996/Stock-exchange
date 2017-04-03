@@ -2,13 +2,6 @@ package network
 
 import files.File
 import messages.HelloMessage
-import java.io.BufferedReader
-import java.io.DataOutputStream
-import java.io.IOException
-import java.io.InputStreamReader
-import java.net.*
-import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
 
 /**
@@ -28,6 +21,7 @@ fun main(args: Array<String>) {
             val (node, msg) = input.split(' ')
             val list = ArrayList<File>(listOf(File("foo", 42)))
             logic.send(node, HelloMessage("Kirill", 239, list))
+
         }
     }
 }
