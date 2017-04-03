@@ -1,6 +1,12 @@
 package network
 
 import messages.Message
+import java.io.BufferedReader
+import java.io.DataOutputStream
+import java.io.IOException
+import java.io.InputStreamReader
+import java.net.ConnectException
+import java.net.ServerSocket
 import java.net.Socket
 import java.util.*
 
@@ -9,7 +15,79 @@ import java.util.*
  */
 class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, val myAddr: MyAddr,
                                                          val others: List<MyAddr>) : AbstractNetworkLogic() {
-    override fun send(node: String?, message: Message?) {
+    private val serverSocket = ServerSocket(myAddr.port)
+
+    init {
+        println("$nodeName started...")
+        startServerSocket()
+        trySendHello()
+    }
+
+    fun startServerSocket() {
+        Thread({
+            while (!Thread.interrupted()) {
+                try {
+                    val socket = serverSocket.accept()
+                    println("$socket accepted")
+                    handleSocket(socket)
+                } catch (e: IOException) {
+                    println("I/O error on serverSocket: " + e)
+                    serverSocket.close()
+                    break
+                }
+            }
+        }).start()
+    }
+
+    fun handleSocket(socket: Socket) {
+        Thread({
+            val input = BufferedReader(InputStreamReader(socket.getInputStream()))
+            val output = DataOutputStream(socket.getOutputStream())
+
+            var line: String?
+            println("start tcp read cycle for $socket")
+            while (!Thread.interrupted()) {
+                try {
+                    line = input.readLine()
+                    if (line.startsWith(HELLO_PREFIX)) {
+                        val name = line.split(' ')[1]
+                        addressBook[name] = socket
+                        output.writeBytes("$RESPONSE_PREFIX $nodeName\n")
+                        output.flush()
+                    } else if (line.startsWith(RESPONSE_PREFIX)) {
+                        val name = line.split(' ')[1]
+                        if (!addressBook.containsKey(name)) {
+                            addressBook[name] = socket
+                        }
+                    }
+                    println("get $line from: $socket")
+                } catch (e: Exception) {
+                    println("tcp reader thread error: $e")
+                    addressBook.values.remove(socket)
+                    socket.close()
+                    break
+                }
+            }
+        }).start()
+    }
+
+    fun trySendHello() {
+        for ((host, port) in others) {
+            try {
+                val socket = Socket(host, port)
+                val output = DataOutputStream(socket.getOutputStream())
+                output.writeBytes("$HELLO_PREFIX $nodeName\n")
+                output.flush()
+                println("connected to $socket")
+                handleSocket(socket)
+            } catch (ignored: ConnectException) { }
+        }
+    }
+
+    override fun send(node: String, message: Message) {
+        if (!addressBook.contains(node)) {
+            throw NoSuchNodeException(node)
+        }
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -47,5 +125,8 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
         private fun othersAddrs(nodeName: String, config: List<Config>): List<MyAddr> {
             return config.filter { it.name != nodeName }.map { MyAddr(it.host, it.port) }
         }
+
+        private val HELLO_PREFIX = "hello.from"
+        private val RESPONSE_PREFIX = "response.from"
     }
 }
