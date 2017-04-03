@@ -111,7 +111,7 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
         }
 
         private fun readConfig(): List<Config> {
-            val confIS = FixedAddressesNetworkLogic2::class.java.getResourceAsStream("/addresses.conf")
+            val confIS = FixedAddressesNetworkLogicImpl::class.java.getResourceAsStream("/addresses.conf")
             val lines = Scanner(confIS).useDelimiter("\\A").next().split('\n')
             return lines.map { line ->
                 val (name, address) = line.split(' ')
@@ -123,8 +123,5 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
         private fun othersAddrs(nodeName: String, config: List<Config>): List<MyAddr> {
             return config.filter { it.name != nodeName }.map { MyAddr(it.host, it.port) }
         }
-
-        private val HELLO_PREFIX = "###hello.from"
-        private val RESPONSE_PREFIX = "###response.from"
     }
 }
