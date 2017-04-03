@@ -1,6 +1,7 @@
 package logic;
 
 import files.File;
+import messages.BrokeMessage;
 import messages.HaveMoneyMessage;
 import messages.RequestBuyMessage;
 import org.junit.Before;
@@ -45,8 +46,6 @@ public class SellerLogicTest {
 
     @Test
     public void sellFile() {
-       // sellerLogic.addFile(new File("file1", 100));
-        //assertEquals(sellerLogic.files.size(),1);
         sellerLogic.onMessageReceived(new RequestBuyMessage("wow", 90, "test"));
         assertEquals(sellerLogic.purchaseRequests.get("test").size(), 1);
         assertEquals(sellerLogic.purchaseRequests.get("test").get(0).getNode(),"wow");
@@ -57,6 +56,12 @@ public class SellerLogicTest {
         assertEquals(sellerLogic.acceptedRequests.size(),0);
         assertEquals(sellerLogic.purchaseRequests.size(),0);
         assertEquals(sellerLogic.files.size(),0);
+        File test1 = new File("test1", 50);
+        sellerLogic.addFile(test1);
+        sellerLogic.onMessageReceived(new RequestBuyMessage("kek", 40, "test1"));
+        sellerLogic.acceptOffer("test1",sellerLogic.purchaseRequests.get("test1").get(0));
+        sellerLogic.onMessageReceived(new BrokeMessage("kek", test1));
+        assertEquals(sellerLogic.acceptedRequests.size(),0);
     }
 
 }
