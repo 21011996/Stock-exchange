@@ -16,8 +16,17 @@ class ResponseToRequestName(name: String) : HandshakeMessage(name)
 //data class Socket(val address: InetAddress, val port: Int)
 
 fun main(args: Array<String>) {
-    val addressBook = ConcurrentHashMap<String, Socket>()
-    IOThread("main-1", addressBook).run()
+    val a = ConcurrentHashMap<String, RequestName>()
+    val rf = RequestName("foo")
+    val rb = RequestName("bar")
+    a["foo"] = rf
+    a["boo"] = rb
+    println(a)
+    a.values.remove(rf)
+    println(a)
+    println(a.keys)
+    //val addressBook = ConcurrentHashMap<String, Socket>()
+    //IOThread("main-1", addressBook).run()
     //InputDataThread("main-3", addressBook).run()
 }
 
