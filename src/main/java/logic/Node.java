@@ -10,7 +10,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 public class Node {
     public final String name;
-    private final NetworkLogic networkLogic = new FixedAddressesNetworkLogicImpl("");
+    private final NetworkLogic networkLogic = null;//new FixedAddressesNetworkLogicImpl("");
     private final SellerLogic sellerLogic;
     private final BuyerLogic buyerLogic;
     private final BlockingQueue<Message> messagesToSend = new LinkedBlockingDeque<>();
