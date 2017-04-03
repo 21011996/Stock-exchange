@@ -40,12 +40,3 @@ data class Record(val name: String, val header: String, val message: String) {
         private fun bytesToInt(byteArray: ByteArray) = ByteBuffer.wrap(byteArray).int
     }
 }
-
-fun main(args: Array<String>) {
-    val rec = Record("name", "heasdfjklasdfdsader", "message")
-    val arr = rec.toByteArray()
-    val newRec = Record.fromInputStream(arr.inputStream())
-    println(newRec == rec)
-    println(rec)
-    println(newRec)
-}

@@ -61,6 +61,7 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
                             addressBook[name] = socket
                         }
                     } else {
+                        
                         //TODO : read record here
                         val byteValues = line.substring(1, line.length - 1).split(",")
                         val bytes = ByteArray(byteValues.size)
@@ -102,12 +103,9 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
     }
 
     override fun sendToSocket(message: Message, socket: Socket) {
-        //TODO : цкшеу record here
         val output = DataOutputStream(socket.getOutputStream())
-        //val kek = message.toRecord().toByteBuffer().toString()
-        //output.writeBytes("$kek\n")
+        output.write(message.toRecord().toByteArray())
         output.flush()
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     companion object {
