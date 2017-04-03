@@ -12,6 +12,8 @@ import java.util.concurrent.ConcurrentHashMap
  * Created by kirill on 03.04.17.
  */
 
+//TODO: println -> logger
+
 class FixedAddressesNetworkLogic2(val nodeName: String, val myAddr: MyAddr, val others: List<MyAddr>) {
     val connected = ConcurrentHashMap<String, Socket>()
     val HELLO_PREFIX = "hello.from"
@@ -31,37 +33,41 @@ class FixedAddressesNetworkLogic2(val nodeName: String, val myAddr: MyAddr, val 
                 try {
                     val socket = serverSocket.accept()
                     println("$socket accepted")
-                    Thread({
-                        val input = BufferedReader(InputStreamReader(socket!!.getInputStream()))
-                        val output = DataOutputStream(socket.getOutputStream())
-
-                        var line: String?
-                        println("start tcp read cycle for $socket")
-                        while (!Thread.interrupted()) {
-                            try {
-                                line = input.readLine()
-                                if (line.startsWith(HELLO_PREFIX)) {
-                                    val name = line.split(' ')[1]
-                                    connected[name] = socket
-                                    output.writeBytes("$RESPONSE_PREFIX $nodeName\n")
-                                    output.flush()
-                                } else if (line.startsWith(RESPONSE_PREFIX)) {
-                                    val name = line.split(' ')[1]
-                                    if (!connected.containsKey(name)) {
-                                        connected[name] = socket
-                                    }
-                                }
-                                println("get $line from: $socket")
-
-                            } catch (e: Exception) {
-                                println("tcp reader thread error: $e")
-                                socket.close()
-                                break
-                            }
-                        }
-                    }).start()
+                    handleSocket(socket)
                 } catch (e: IOException) {
                     println("I/O error on serverSocket: " + e)
+                    serverSocket.close()
+                    break
+                }
+            }
+        }).start()
+    }
+
+    fun handleSocket(socket: Socket) {
+        Thread({
+            val input = BufferedReader(InputStreamReader(socket.getInputStream()))
+            val output = DataOutputStream(socket.getOutputStream())
+
+            var line: String?
+            println("start tcp read cycle for $socket")
+            while (!Thread.interrupted()) {
+                try {
+                    line = input.readLine()
+                    if (line.startsWith(HELLO_PREFIX)) {
+                        val name = line.split(' ')[1]
+                        connected[name] = socket
+                        output.writeBytes("$RESPONSE_PREFIX $nodeName\n")
+                        output.flush()
+                    } else if (line.startsWith(RESPONSE_PREFIX)) {
+                        val name = line.split(' ')[1]
+                        if (!connected.containsKey(name)) {
+                            connected[name] = socket
+                        }
+                    }
+                    println("get $line from: $socket")
+                } catch (e: Exception) {
+                    println("tcp reader thread error: $e")
+                    socket.close()
                     break
                 }
             }
@@ -76,9 +82,8 @@ class FixedAddressesNetworkLogic2(val nodeName: String, val myAddr: MyAddr, val 
                 output.writeBytes("$HELLO_PREFIX $nodeName\n")
                 output.flush()
                 println("connected to $socket")
-            } catch (e: ConnectException) {
-
-            }
+                handleSocket(socket)
+            } catch (ignored: ConnectException) { }
         }
     }
 
