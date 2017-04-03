@@ -3,8 +3,6 @@ package messages;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.nio.ByteBuffer;
-
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -21,7 +19,7 @@ public class RecordTest {
 
     @Test
     public void toAndFromByteBuffer() throws Exception {
-        ByteBuffer buffer = testRecord.toByteBuffer();
+        byte[] buffer = testRecord.toByteBuffer();
         Record fromBB = Record.fromByteBuffer(buffer);
         assertEquals(testRecord, fromBB);
     }
