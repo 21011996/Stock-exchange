@@ -12,8 +12,9 @@ import java.util.function.Consumer
  */
 abstract class AbstractNetworkLogic : NetworkLogic {
 
-    private val addressBook = ConcurrentHashMap<String, Socket>()
-    private val messageHandlers = Collections.synchronizedList(mutableListOf<Consumer<in Message>>())
+    protected val addressBook = ConcurrentHashMap<String, Socket>()
+    protected val messageHandlers: MutableList<Consumer<in Message>>
+            = Collections.synchronizedList(mutableListOf<Consumer<in Message>>())
 
     override fun sendAll(message: Message) {
         for (socket in addressBook.values) {
@@ -26,6 +27,9 @@ abstract class AbstractNetworkLogic : NetworkLogic {
     override fun addMessageHandler(handler: Consumer<in Message>) {
         messageHandlers.add(handler)
     }
+
+    override fun getNodes(): MutableSet<String> = Collections.unmodifiableSet(addressBook.keys)
+
 }
 
 class NoSuchNodeException(val node: String) : IllegalArgumentException("Unknown node: $node")

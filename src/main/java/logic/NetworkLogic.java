@@ -2,6 +2,7 @@ package logic;
 
 import messages.Message;
 
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -20,4 +21,6 @@ public interface NetworkLogic {
     void sendAll(Message message);
 
     void addMessageHandler(Consumer<? super Message> handler);
+
+    Set<String> getNodes();
 }
