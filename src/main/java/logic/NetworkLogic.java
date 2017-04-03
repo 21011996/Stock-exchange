@@ -17,5 +17,7 @@ public interface NetworkLogic {
     void send(String node, Message message);
     //TODO: Parse the network information from the node
 
+    void sendAll(Message message);
+
     void addMessageHandler(Consumer<? super Message> handler);
 }
