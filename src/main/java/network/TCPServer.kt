@@ -55,6 +55,9 @@ class EchoThread(private val socket: Socket, private val prefix: ConcurrentHashM
             return
         }
 
+        out.writeBytes("Welcome to server\n")
+        out.flush()
+
         var line: String?
         while (true) {
             try {

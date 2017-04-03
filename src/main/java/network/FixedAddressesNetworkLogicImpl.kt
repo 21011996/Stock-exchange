@@ -27,7 +27,7 @@ class FixedAddressesNetworkLogic2(val nodeName: String, val myAddr: MyAddr, val 
 
     fun startServerSocket() {
         Thread({
-            while (true) {
+            while (!Thread.interrupted()) {
                 try {
                     val socket = serverSocket.accept()
                     println("$socket accepted")
@@ -37,9 +37,9 @@ class FixedAddressesNetworkLogic2(val nodeName: String, val myAddr: MyAddr, val 
 
                         var line: String?
                         println("start tcp read cycle for $socket")
-                        while (true) {
+                        while (!Thread.interrupted()) {
                             try {
-                                line = input.readLine() ?: continue
+                                line = input.readLine()
                                 if (line.startsWith(HELLO_PREFIX)) {
                                     val name = line.split(' ')[1]
                                     connected[name] = socket
