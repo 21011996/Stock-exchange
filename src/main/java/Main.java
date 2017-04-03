@@ -1,13 +1,9 @@
 import files.File;
 import logic.Node;
 import logic.ParticipantState;
-import messages.HaveMoneyMessage;
-import messages.RequestBuyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
 import java.util.HashMap;
 
 /**
@@ -22,11 +18,14 @@ public class Main {
     }
 
     public void run() throws InterruptedException {
-        Thread.currentThread().setName("Main");
-
+        byte[] temp = new byte[]{100, 102, 103, 104};
+        System.out.println(new String(temp));
+        /*Thread.currentThread().setName("Main");
+        */
         Node node = new Node("TestNode", new ParticipantState(100, new HashMap<String, File>() {{
             put("test", new File("test", 100));
         }}));
+        /*
         ThreadInfo[] threads = ManagementFactory.getThreadMXBean()
                 .dumpAllThreads(true, true);
         for (final ThreadInfo info : threads)
@@ -43,6 +42,6 @@ public class Main {
         threads = ManagementFactory.getThreadMXBean()
                 .dumpAllThreads(true, true);
         for (final ThreadInfo info : threads)
-            System.out.print(info);
+            System.out.print(info);*/
     }
 }
