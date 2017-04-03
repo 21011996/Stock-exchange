@@ -1,6 +1,7 @@
 package logic;
 
 import files.File;
+import messages.RequestBuyMessage;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -42,10 +43,10 @@ public class SellerLogicTest {
     }
 
     @Test
-    public void onMessageReceived() throws Throwable{
-
-
+    public void sellFile() {
+        sellerLogic.addFile(new File("file1", 100));
+        sellerLogic.onMessageReceived(new RequestBuyMessage("wow", 90, "file1"));
+        assertEquals(sellerLogic.purchaseRequests.get("file1").size(), 1);
     }
-
 
 }

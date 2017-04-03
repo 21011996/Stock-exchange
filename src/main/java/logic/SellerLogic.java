@@ -12,8 +12,8 @@ import java.util.*;
  */
 public class SellerLogic {
     private org.slf4j.Logger logger = LoggerFactory.getLogger(SellerLogic.class);
-    private HashMap<String, File> files;
-    private HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
+    HashMap<String, File> files;
+    HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
     private HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
 
     private Scanner in = new Scanner(System.in);
