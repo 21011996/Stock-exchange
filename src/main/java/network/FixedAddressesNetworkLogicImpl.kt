@@ -1,11 +1,10 @@
 package network
 
+import messages.HandShakeHelloMessage
+import messages.HandShakeResponseMessage
 import messages.Message
 import messages.Record
-import java.io.BufferedReader
-import java.io.DataOutputStream
-import java.io.IOException
-import java.io.InputStreamReader
+import java.io.*
 import java.net.ConnectException
 import java.net.ServerSocket
 import java.net.Socket
@@ -42,39 +41,26 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
 
     fun handleSocket(socket: Socket) {
         Thread({
-            val input = BufferedReader(InputStreamReader(socket.getInputStream()))
-            val output = DataOutputStream(socket.getOutputStream())
-
-            var line: String?
+            val input = socket.getInputStream()
             println("start tcp read cycle for $socket")
             while (!Thread.interrupted()) {
                 try {
-                    line = input.readLine()
-                    if (line.startsWith(HELLO_PREFIX)) {
-                        val name = line.split(' ')[1]
-                        addressBook[name] = socket
-                        output.writeBytes("$RESPONSE_PREFIX $nodeName\n")
-                        output.flush()
-                    } else if (line.startsWith(RESPONSE_PREFIX)) {
-                        val name = line.split(' ')[1]
-                        if (!addressBook.containsKey(name)) {
-                            addressBook[name] = socket
+                    val message = Message.parseRecord(Record.fromInputStream(input))
+                    when (message) {
+                        is HandShakeHelloMessage -> {
+                            addressBook[message.name] = socket
+                            sendToSocket(HandShakeResponseMessage(nodeName), socket)
                         }
-                    } else {
-                        
-                        //TODO : read record here
-                        val byteValues = line.substring(1, line.length - 1).split(",")
-                        val bytes = ByteArray(byteValues.size)
-                        var i = 0
-                        val len = bytes.size
-                        while (i < len) {
-                            bytes[i] = java.lang.Byte.parseByte(byteValues[i].trim({ it <= ' ' }))
-                            i++
+                        is HandShakeResponseMessage -> {
+                            if (!addressBook.containsKey(message.name)) {
+                                addressBook[message.name] = socket
+                            }
                         }
-                        //val msg = Message.parseRecord(Record.fromByteBuffer(bytes))
-                        //TODO get msg somewhere
+                        else -> {
+                            messageHandlers.forEach { it.accept(message) }
+                        }
                     }
-                    println("get $line from: $socket")
+                    println("get $message from: $socket")
                 } catch (e: Exception) {
                     println("tcp reader thread error: $e")
                     addressBook.values.remove(socket)
@@ -89,17 +75,16 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
         for ((host, port) in others) {
             try {
                 val socket = Socket(host, port)
-                val output = DataOutputStream(socket.getOutputStream())
-                output.writeBytes("$HELLO_PREFIX $nodeName\n")
-                output.flush()
+                sendToSocket(HandShakeHelloMessage(nodeName), socket)
                 println("connected to $socket")
                 handleSocket(socket)
-            } catch (ignored: ConnectException) { }
+            } catch (ignored: ConnectException) {
+            }
         }
     }
 
     override fun send(node: String, message: Message) {
-        sendToSocket(message, addressBook[node]?: throw NoSuchNodeException(node))
+        sendToSocket(message, addressBook[node] ?: throw NoSuchNodeException(node))
     }
 
     override fun sendToSocket(message: Message, socket: Socket) {
