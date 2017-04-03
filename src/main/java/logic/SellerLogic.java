@@ -12,9 +12,9 @@ import java.util.*;
  */
 public class SellerLogic {
     private org.slf4j.Logger logger = LoggerFactory.getLogger(SellerLogic.class);
-    private HashMap<String, File> files;
-    private HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
-    private HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
+    HashMap<String, File> files;
+    HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
+    HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
 
     private Scanner in = new Scanner(System.in);
     private Node parent;
@@ -149,7 +149,7 @@ public class SellerLogic {
         }
     }
 
-    private void acceptOffer(String filename, PurchaseRequest offer) {
+    public void acceptOffer(String filename, PurchaseRequest offer) {
         parent.sendMessage(offer.getNode(), new AcceptBuyMessage(parent.getName(), filename));
         acceptedRequests.put(filename, offer);
     }
