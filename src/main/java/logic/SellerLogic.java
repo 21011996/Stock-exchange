@@ -12,9 +12,24 @@ import java.util.*;
  */
 public class SellerLogic {
     private org.slf4j.Logger logger = LoggerFactory.getLogger(SellerLogic.class);
-    HashMap<String, File> files;
-    HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
-    HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
+    private HashMap<String, File> files;
+    private HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
+    private HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
+
+    public HashMap<String,File> getF(){
+        return files;
+    }
+
+    public HashMap<String,ArrayList<PurchaseRequest>> getPurReq(){
+        return purchaseRequests;
+    }
+
+    public HashMap<String,PurchaseRequest> getAccReq(){
+        return acceptedRequests;
+    }
+
+
+
 
     private Scanner in = new Scanner(System.in);
     private Node parent;
