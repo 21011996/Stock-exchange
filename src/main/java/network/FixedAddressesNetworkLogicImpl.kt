@@ -70,7 +70,7 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
                             bytes[i] = java.lang.Byte.parseByte(byteValues[i].trim({ it <= ' ' }))
                             i++
                         }
-                        val msg = Message.parseRecord(Record.fromByteBuffer(bytes))
+                        //val msg = Message.parseRecord(Record.fromByteBuffer(bytes))
                         //TODO get msg somewhere
                     }
                     println("get $line from: $socket")
@@ -104,8 +104,8 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
     override fun sendToSocket(message: Message, socket: Socket) {
         //TODO : цкшеу record here
         val output = DataOutputStream(socket.getOutputStream())
-        val kek = message.toRecord().toByteBuffer().toString()
-        output.writeBytes("$kek\n")
+        //val kek = message.toRecord().toByteBuffer().toString()
+        //output.writeBytes("$kek\n")
         output.flush()
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }

@@ -21,6 +21,12 @@ public enum MessageType {
         this.header = header;
     }
 
+
+    @Override
+    public String toString() {
+        return header;
+    }
+
     public static MessageType parse(String header) {
         for (MessageType t : values()) {
             if (t.header.equals(header)) return t;

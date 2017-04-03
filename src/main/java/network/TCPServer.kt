@@ -1,5 +1,7 @@
 package network
 
+import messages.Message
+import messages.Record
 import java.io.*
 import java.net.*
 import java.net.Socket
@@ -23,12 +25,7 @@ object ThreadedEchoServer {
                 } catch (e: IOException) {
                     println("I/O error: " + e)
                 }
-
-                // new threa for a client
                 EchoThread(socket!!, foo).start()
-                /*Thread("client ${socket!!.inetAddress}").run {
-
-                }*/
             }
         }).start()
 
@@ -55,20 +52,24 @@ class EchoThread(private val socket: Socket, private val prefix: ConcurrentHashM
             return
         }
 
-        out.writeBytes("Welcome to server\n")
-        out.flush()
-
         var line: String?
         while (true) {
             try {
-                line = brinp.readLine()
+                val buf = ByteArray(1024)
+                //inp.read(buf, 0, 1)
+                //val size = buf[0].toInt()
+                //println("header of size: $size")
+                inp.read(buf, 0, 1024)
+                //val message = Message.parseRecord(Record.fromByteBuffer(buf))
+                //println(message)
+                /*//line = brinp.readLine()
                 if (line == null || line.equals("QUIT", ignoreCase = true)) {
                     socket.close()
                     return
                 } else {
                     out.writeBytes("${prefix["prefix"]}: $line\n\r")
                     out.flush()
-                }
+                }*/
             } catch (e: IOException) {
                 e.printStackTrace()
                 return
