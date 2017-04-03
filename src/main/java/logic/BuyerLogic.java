@@ -6,9 +6,11 @@ import messages.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by shambala on 02.04.17.
@@ -16,66 +18,54 @@ import java.util.stream.Collectors;
 public class BuyerLogic {
     HashMap<String, File> files = new HashMap<>();
     ArrayList<File> requested = new ArrayList<>();
-    HashMap<String, Node> fileNodes = new HashMap<>();
     ArrayList<String> waitFiles = new ArrayList<>();
-    ArrayList<Node> remoteNodes = new ArrayList<>();
 
-    int balance;
+
+    Logger logger = LoggerFactory.getLogger(BuyerLogic.class);
 
     Node parent;
 
-    BuyerLogic(Node parent, int balance) {
+    BuyerLogic(Node parent) {
         this.parent = parent;
-        this.balance = balance;
+        this.files = parent.getCurrentState().getDocuments();
     }
 
-    BuyerLogic(Node parent, int balance, Collection<File> files) {
-        this(parent, balance);
-        addFiles(files);
+    BuyerLogic(Node parent, Collection<File> files) {
+        this(parent);
+        parent.getCurrentState().addDocuments(files);
     }
 
-    public void addFiles(Collection<File> collection) {
-        for (File file : collection) {
-            addFile(file);
-        }
-    }
 
-    public void addFile(File file) {
-        if (files.containsKey(file.getName())) {
-            if (!files.get(file.getName()).equals(file)) {
-                Logger.getGlobal().log(Level.SEVERE, "Filename uniqueness violated");
-            } else {
-                Logger.getGlobal().log(Level.WARNING, "Repetitive addition of the same file detected");
-            }
-        } else {
-            files.put(file.getName(), file);
-        }
-    }
-
-    public File getFile(String filename) {
-        return files.get(filename);
-    }
-
-    public HashMap<String, File> getFiles() {
-        return files;
-    }
-
-    public void wantToBuy(Node seller, String fileToBuy, int price) {
-        if (requested.contains(fileToBuy)) {
-            Logger.getGlobal().log(Level.WARNING, "File " + fileToBuy+ " was already requested");
+    public void wantToBuy(String fileToBuy, int price) {
+        if (requested.stream().map(x -> x.getName()).collect(Collectors.toList()).contains(fileToBuy)) {
+            logger.warn("File {} was already requested", fileToBuy);
             return;
         }
-        RequestBuyMessage request = new RequestBuyMessage("name", price, fileToBuy);
-        parent.sendMessage(seller.getName(), request);
-        requested.add(new File(fileToBuy, price));
-        fileNodes.put(fileToBuy, seller);
+        RequestBuyMessage request = new RequestBuyMessage(parent.getName(), price, fileToBuy);
+        String fileOwner = parent.getCurrentState().getDocumentNode(fileToBuy);
+        if (fileOwner != null) {
+            parent.sendMessage(parent.getCurrentState().getDocumentNode(fileToBuy), request);
+            requested.add(new File(fileToBuy, price));
+        } else {
+            logger.error("Requested file is not available");
+        }
     }
 
-    public void onReceiveMessage(Message message) {
+    public void onMessageReceived(Message message) {
+        if (message instanceof HelloMessage) {
+            for (File file : ((HelloMessage) message).getFiles()) {
+                parent.getCurrentState().addRemoteDocument(file, message.getName());
+            }
+        }
+        if (message instanceof NotifyBuyMessage) {
+            if (!message.getName().equals(parent.getName())) {
+                parent.getCurrentState().setRemoteDocument(((NotifyBuyMessage) message).getFile(), message.getName());
+            }
+        }
         if (message instanceof AcceptBuyMessage) {
             String name = ((AcceptBuyMessage) message).getFileName();
             if (!requested.stream().map(x -> x.getName()).collect(Collectors.toList()).contains(name)) {
-                Logger.getGlobal().log(Level.WARNING, "Accept without request");
+                logger.warn("Accept without request");
             } else {
                 File acceptedFile = null;
                 for (File file : requested) {
@@ -84,27 +74,24 @@ public class BuyerLogic {
                         break;
                     }
                 }
-                if (acceptedFile.getPrice()<=balance) {
-                    balance -= acceptedFile.getPrice();
-                    parent.sendMessage(fileNodes.get(acceptedFile.getName()).getName(), new HaveMoneyMessage("name", acceptedFile));
+                if (acceptedFile.getPrice()<=parent.getCurrentState().getBalance()) {
+                    parent.getCurrentState().setBalance(parent.getCurrentState().getBalance()-acceptedFile.getPrice());
+                    parent.sendMessage(parent.getCurrentState().getDocumentNode(acceptedFile.getName()), new HaveMoneyMessage(parent.getName(), acceptedFile));
                     waitFiles.add(acceptedFile.getName());
                 } else {
-                    parent.sendMessage(fileNodes.get(acceptedFile.getName()).getName(), new BrokeMessage("name", acceptedFile));
+                    parent.sendMessage(parent.getCurrentState().getDocumentNode(acceptedFile.getName()), new BrokeMessage(parent.getName(), acceptedFile));
                 }
                 requested.remove(acceptedFile);
-                fileNodes.remove(acceptedFile.getName());
             }
         }
         if (message instanceof TransferFileMessage) {
             File file = ((TransferFileMessage) message).getFile();
             if (!waitFiles.contains(file.getName())) {
-                Logger.getGlobal().log(Level.WARNING, "File was transferred, but wasn't requested");
+                 logger.warn("File {} was transferred, but wasn't requested", file.getName());
             } else {
                 waitFiles.remove(file.getName());
-                addFile(file);
-                for (Node node : remoteNodes) {
-                    parent.sendMessage(node.getName(), new NotifyBuyMessage("name", file));
-                }
+                parent.getCurrentState().addDocument(file);
+                parent.getCurrentState().removeRemoteDocument(file.getName());
             }
         }
     }
