@@ -12,7 +12,7 @@ import java.util.*;
  */
 public class SellerLogic {
     private org.slf4j.Logger logger = LoggerFactory.getLogger(SellerLogic.class);
-    private HashMap<String, File> files = new HashMap<>();
+    private HashMap<String, File> files;
     private HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
     private HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
 
@@ -21,6 +21,7 @@ public class SellerLogic {
 
     public SellerLogic(Node parent) {
         this.parent = parent;
+        files = parent.getCurrentState().getDocuments();
     }
 
     public SellerLogic(Node parent, Collection<File> collection) {
@@ -60,6 +61,7 @@ public class SellerLogic {
 
     /**
      * Primary method of this class. Handles the bidding logic according to the type of incoming message.
+     *
      * @param message The network message to handle
      */
     public void onMessageReceived(Message message) {
@@ -74,7 +76,6 @@ public class SellerLogic {
             } else {
                 purchaseRequests.putIfAbsent(filename, new ArrayList<>());
                 purchaseRequests.get(filename).add(new PurchaseRequest(message.getName(), price));
-                printBidStatus(filename, true);
             }
         } else if (message instanceof HaveMoneyMessage) {
             String requestedFile = ((HaveMoneyMessage) message).getFile().getName();
@@ -84,11 +85,11 @@ public class SellerLogic {
                     acceptedRequests.get(requestedFile).getNode().equals(message.getName())) {
                 File toTransfer = files.get(requestedFile);
                 toTransfer.setPrice(acceptedRequests.get(requestedFile).getOffer());
-                parent.sendMessage(new TransferFileMessage(parent.getName(), toTransfer));
+                parent.sendMessage(requestSender, new TransferFileMessage(parent.getName(), toTransfer));
                 File details = files.get(requestedFile);
                 details.setPrice(acceptedRequests.get(requestedFile).getOffer());
                 for (PurchaseRequest request : purchaseRequests.get(requestedFile)) {
-                    parent.sendMessage(new NotifyBuyMessage(requestSender, details));
+                    parent.sendMessage(requestSender, new NotifyBuyMessage(requestSender, details));
                 }
                 files.remove(requestedFile);
                 purchaseRequests.remove(requestedFile);
@@ -106,7 +107,6 @@ public class SellerLogic {
                 ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
                 requests.removeIf(purchaseRequest -> purchaseRequest.getNode().equals(message.getName()));
                 //AFAIR this should remove the request from the mapped arraylist, too
-                printBidStatus(fileName, true);
             } else {
                 logger.debug("Insufficient funds message without previous accepted bid. The message could have been fabricated. Malicious node: {}", message.getName());
             }
@@ -115,42 +115,54 @@ public class SellerLogic {
 
     /**
      * Prints a single file's bids to the standard output. When in interactive mode, allows to choose a bid to accept.
-     * @param filename The file to show status for
-     * @param interactive Whether to interact with the user
+     *
+     * @param fileName The file to show status for
      */
-    private void printBidStatus(String filename, boolean interactive) {
-        ArrayList<PurchaseRequest> requests = purchaseRequests.get(filename);
+    public void printBidStatus(String fileName) {
+        if (!purchaseRequests.containsKey(fileName)) {
+            System.out.println("No such file");
+            return;
+        }
+        ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
         requests.sort(Comparator.comparingInt(PurchaseRequest::getOffer).reversed());
-        System.out.println(String.format("Bids for file %s(base price is %d) now: %d", filename, files.get(filename).getPrice(), requests.size()));
+        System.out.println(String.format("Bids for file %s(base price is %d) now: %d", fileName, files.get(fileName).getPrice(), requests.size()));
         for (int i = 0; i < requests.size(); i++) {
             System.out.println(String.format("#%d bid: %7d from node %s", i + 1,
                     requests.get(i).getOffer(), requests.get(i).getNode()));
         }
-        if (interactive && requests.size() > 0) {
-            System.out.println("Enter the number of a node to accept offer (\"0\" to reject all offers): ");
-            String input = in.nextLine();
-            try {
-                int choice = Integer.parseInt(input);
-                if (choice > 0 && choice <= requests.size()) {
-                    acceptOffer(filename, requests.get(choice - 1));
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Wrong input format; bids are ignored.");
+
+    }
+
+    public void sellFile(String fileName, String node) {
+        if (!purchaseRequests.containsKey(fileName)) {
+            System.out.println("No such file");
+            return;
+        }
+        ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
+        boolean sold = false;
+        for (PurchaseRequest pr : requests) {
+            if (node.equals(pr.getNode())) {
+                acceptOffer(fileName, pr);
+                sold = true;
+                break;
             }
+        }
+        if (!sold) {
+            System.out.println(String.format("%s doesn't want to buy %s", node, fileName));
         }
     }
 
     /**
      * Utility method. Prints current status for all files
      */
-    private void printAllBids() {
+    public void printAllBids() {
         for (String filename : files.keySet()) {
-            printBidStatus(filename, false);
+            printBidStatus(filename);
         }
     }
 
     private void acceptOffer(String filename, PurchaseRequest offer) {
-        parent.sendMessage(new AcceptBuyMessage(parent.getName(), filename));
+        parent.sendMessage(offer.getNode(), new AcceptBuyMessage(parent.getName(), filename));
         acceptedRequests.put(filename, offer);
     }
 

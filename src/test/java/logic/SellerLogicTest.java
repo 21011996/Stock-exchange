@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 
@@ -16,7 +17,9 @@ public class SellerLogicTest {
 
     @Before
     public void prepareLogic() {
-        sellerLogic = new SellerLogic(Node.STUB);
+        sellerLogic = new SellerLogic(new Node("TestNode", new ParticipantState(100, new HashMap<String, File>() {{
+            put("test", new File("test", 100));
+        }}), true));
     }
 
     @Test
