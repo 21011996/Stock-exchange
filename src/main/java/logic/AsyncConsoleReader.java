@@ -7,6 +7,8 @@ package logic;
 import java.io.InputStream;
 import java.util.Scanner;
 
+import static java.lang.Thread.interrupted;
+
 /**
  * Class to interact with console.
  * info "filename" - returns information about file
@@ -17,25 +19,28 @@ import java.util.Scanner;
 public class AsyncConsoleReader implements Runnable {
 
     private final SellerLogic sellerLogic;
+    private final BuyerLogic buyerLogic;
     private final InputStream input;
     private final Node parent;
 
-    public AsyncConsoleReader(Node parent, SellerLogic sellerLogic) {
-        this(parent, sellerLogic, System.in);
+    public AsyncConsoleReader(Node parent, SellerLogic sellerLogic, BuyerLogic buyerLogic) {
+        this(parent, sellerLogic, buyerLogic, System.in);
     }
 
-    public AsyncConsoleReader(Node parent, SellerLogic sellerLogic, InputStream input) {
+    public AsyncConsoleReader(Node parent, SellerLogic sellerLogic, BuyerLogic buyerLogic, InputStream input) {
         this.parent = parent;
         this.sellerLogic = sellerLogic;
+        this.buyerLogic = buyerLogic;
         this.input = input;
     }
 
     @Override
     public void run() {
+        Thread.currentThread().setName(parent.getName() + "Console");
         Scanner in = new Scanner(input);
-        while (!Thread.interrupted()) {
+        while (!interrupted()) {
             String[] request = in.nextLine().split(" ");
-            if (Thread.interrupted())
+            if (interrupted())
                 break;
             //assuming that file names are one word
             switch (request[0]) {
@@ -50,8 +55,14 @@ public class AsyncConsoleReader implements Runnable {
                     break;
                 case "exit":
                     parent.shutdown();
+                    Thread.currentThread().interrupt();
                     break;
-                //TODO add cases for buyer logic
+                case "listfiles":
+                    parent.getCurrentState().printRemote();
+                    break;
+                case "buy":
+                    buyerLogic.wantToBuy(request[1], Integer.parseInt(request[2]));
+                    break;
                 default:
                     System.out.println("Can't parse your request");
             }

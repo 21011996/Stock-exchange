@@ -16,6 +16,21 @@ public class SellerLogic {
     private HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
     private HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
 
+    public HashMap<String,File> getF(){
+        return files;
+    }
+
+    public HashMap<String,ArrayList<PurchaseRequest>> getPurReq(){
+        return purchaseRequests;
+    }
+
+    public HashMap<String,PurchaseRequest> getAccReq(){
+        return acceptedRequests;
+    }
+
+
+
+
     private Scanner in = new Scanner(System.in);
     private Node parent;
 
@@ -26,38 +41,25 @@ public class SellerLogic {
 
     public SellerLogic(Node parent, Collection<File> collection) {
         this(parent);
-        addFiles(collection);
+        parent.getCurrentState().addDocuments(collection);
     }
 
     public void setIn(Scanner in) {
         this.in = in;
     }
 
-    public void addFiles(Collection<File> collection) {
-        for (File file : collection) {
-            addFile(file);
-        }
+    public void addFiles(Collection<File> files) {
+        parent.getCurrentState().addDocuments(files);
     }
 
     public void addFile(File file) {
-        if (files.containsKey(file.getName())) {
-            if (!files.get(file.getName()).equals(file)) {
-                logger.error("Filename uniqueness violated");
-            } else {
-                logger.warn("Repetitive addition of the same file detected");
-            }
-        } else {
-            files.put(file.getName(), file);
-        }
+        parent.getCurrentState().addDocument(file);
     }
 
-    public File getFile(String filename) {
-        return files.get(filename);
+    public File getFile(String fileName) {
+        return parent.getCurrentState().getDocument(fileName);
     }
 
-    public HashMap<String, File> getFiles() {
-        return files;
-    }
 
     /**
      * Primary method of this class. Handles the bidding logic according to the type of incoming message.
@@ -85,11 +87,12 @@ public class SellerLogic {
                     acceptedRequests.get(requestedFile).getNode().equals(message.getName())) {
                 File toTransfer = files.get(requestedFile);
                 toTransfer.setPrice(acceptedRequests.get(requestedFile).getOffer());
-                parent.sendMessage(new TransferFileMessage(parent.getName(), toTransfer));
+                parent.sendMessage(requestSender, new TransferFileMessage(parent.getName(), toTransfer));
+                parent.getCurrentState().addRemoteDocument(toTransfer, requestSender);
                 File details = files.get(requestedFile);
                 details.setPrice(acceptedRequests.get(requestedFile).getOffer());
                 for (PurchaseRequest request : purchaseRequests.get(requestedFile)) {
-                    parent.sendMessage(new NotifyBuyMessage(requestSender, details));
+                    parent.sendMessage(requestSender, new NotifyBuyMessage(requestSender, details)); //TODO: Looks like bug, request is not used
                 }
                 files.remove(requestedFile);
                 purchaseRequests.remove(requestedFile);
@@ -161,8 +164,8 @@ public class SellerLogic {
         }
     }
 
-    private void acceptOffer(String filename, PurchaseRequest offer) {
-        parent.sendMessage(new AcceptBuyMessage(parent.getName(), filename));
+    public void acceptOffer(String filename, PurchaseRequest offer) {
+        parent.sendMessage(offer.getNode(), new AcceptBuyMessage(parent.getName(), filename));
         acceptedRequests.put(filename, offer);
     }
 
