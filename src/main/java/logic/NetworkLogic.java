@@ -8,7 +8,7 @@ import java.util.function.Consumer;
  * Created by heat_wave on 30.03.17.
  */
 
-interface NetworkLogic {
+public interface NetworkLogic {
     /**
      * A handle that sends a message to a node over the network.
      * @param node The addressee
