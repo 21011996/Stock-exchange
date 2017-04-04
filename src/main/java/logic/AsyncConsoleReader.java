@@ -4,7 +4,10 @@ package logic;
   Created by @amir.
  */
 
+import com.sun.deploy.util.StringUtils;
+
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import static java.lang.Thread.interrupted;
@@ -45,10 +48,14 @@ public class AsyncConsoleReader implements Runnable {
             //assuming that file names are one word
             switch (request[0]) {
                 case "info":
-                    sellerLogic.printBidStatus(request[1]);
+                    if (request.length == 2) {
+                        sellerLogic.printBidStatus(request[1]);
+                    }
                     break;
                 case "sell":
-                    sellerLogic.sellFile(request[1], request[2]);
+                    if (request.length == 3) {
+                        sellerLogic.sellFile(request[1], request[2]);
+                    }
                     break;
                 case "infoall":
                     sellerLogic.printAllBids();
@@ -61,7 +68,15 @@ public class AsyncConsoleReader implements Runnable {
                     parent.getCurrentState().printRemote();
                     break;
                 case "buy":
-                    buyerLogic.wantToBuy(request[1], Integer.parseInt(request[2]));
+                    if (request.length == 3) {
+                        buyerLogic.wantToBuy(request[1], Integer.parseInt(request[2]));
+                    }
+                    break;
+                case "reject":
+                    if (request.length >= 3) {
+                        sellerLogic.rejectBid(request[1], request[2],
+                                StringUtils.join(Arrays.asList(request).subList(3, request.length), null));
+                    }
                     break;
                 case "status":
                     System.out.println(parent.getCurrentState().toString());

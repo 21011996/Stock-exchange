@@ -134,6 +134,12 @@ public class SellerLogic {
 
     }
 
+    public void rejectBid(String fileName, String node, String reason) {
+        ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
+        requests.removeIf(purchaseRequest -> purchaseRequest.getNode().equals(node));
+        parent.sendMessage(node, new RejectBuyMessage(parent.getName(), fileName, reason));
+    }
+
     public void sellFile(String fileName, String node) {
         if (!purchaseRequests.containsKey(fileName)) {
             System.out.println("No such file");
