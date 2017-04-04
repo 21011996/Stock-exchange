@@ -4,19 +4,30 @@ import files.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class ParticipantState {
+    Logger logger = LoggerFactory.getLogger(ParticipantState.class);
     private int balance;
     private HashMap<String, File> documents;
     private HashMap<String, File> remoteDocuments = new HashMap<>();
     private HashMap<String, String> documentNodes = new HashMap<>();
-    Logger logger = LoggerFactory.getLogger(ParticipantState.class);
+    private HashSet<String> neighbors = new HashSet<>();
 
     public ParticipantState(int balance, HashMap<String, File> documents) {
         this.balance = balance;
         this.documents = documents;
+    }
+
+    public HashSet<String> getNeighbors() {
+        return neighbors;
+    }
+
+    public void setNeighbors(HashSet<String> neighbors) {
+        this.neighbors = neighbors;
     }
 
     public HashMap<String, File> getDocuments() {
@@ -93,8 +104,12 @@ public class ParticipantState {
     public void printRemote() {
         System.out.println("Available files:");
         for (File file : remoteDocuments.values()) {
-            System.out.println(file.getName() + ": " + file.getPrice());
+            System.out.println(file.getName() + ": " + file.getPrice() + " at " + documentNodes.get(file.getName()));
         }
     }
 
+    @Override
+    public String toString() {
+        return String.format("Balance: %s; Files: %s", balance, Arrays.toString(documents.values().toArray()));
+    }
 }

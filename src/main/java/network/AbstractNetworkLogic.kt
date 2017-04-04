@@ -12,7 +12,7 @@ import java.util.function.Consumer
  */
 abstract class AbstractNetworkLogic : NetworkLogic {
 
-    protected val addressBook = ConcurrentHashMap<String, Socket>()
+    val addressBook = ConcurrentHashMap<String, Socket>()
     protected val messageHandlers: MutableList<Consumer<in Message>>
             = Collections.synchronizedList(mutableListOf<Consumer<in Message>>())
 

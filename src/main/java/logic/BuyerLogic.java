@@ -2,15 +2,13 @@ package logic;
 
 import files.File;
 import messages.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created by shambala on 02.04.17.
@@ -55,12 +53,16 @@ public class BuyerLogic {
         if (message instanceof HelloMessage) {
             for (File file : ((HelloMessage) message).getFiles()) {
                 parent.getCurrentState().addRemoteDocument(file, message.getName());
+                parent.getCurrentState().getNeighbors().add(message.getName());
             }
         }
         if (message instanceof NotifyBuyMessage) {
             if (!message.getName().equals(parent.getName())) {
                 parent.getCurrentState().setRemoteDocument(((NotifyBuyMessage) message).getFile(), message.getName());
             }
+        }
+        if (message instanceof RejectBuyMessage) {
+            System.out.println(String.format("Your bid for file %s was rejected by %s, reason: %s", ((RejectBuyMessage) message).getFileName(), message.getName(), ((RejectBuyMessage) message).getReason()));
         }
         if (message instanceof AcceptBuyMessage) {
             String name = ((AcceptBuyMessage) message).getFileName();

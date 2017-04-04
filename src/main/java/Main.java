@@ -1,13 +1,9 @@
 import files.File;
 import logic.Node;
 import logic.ParticipantState;
-import messages.HaveMoneyMessage;
-import messages.RequestBuyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
 import java.util.HashMap;
 
 /**
@@ -18,15 +14,21 @@ public class Main {
     private Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws InterruptedException {
-        new Main().run();
+        //new Main().run();
+        Node node = new Node(args[0], new ParticipantState(1000, new HashMap<String, File>() {{
+            put("test" + args[0], new File("test" + args[0], 100));
+        }}));
     }
 
     public void run() throws InterruptedException {
-        Thread.currentThread().setName("Main");
-
-        Node node = new Node("TestNode", new ParticipantState(100, new HashMap<String, File>() {{
+        byte[] temp = new byte[]{100, 102, 103, 104};
+        System.out.println(new String(temp));
+        /*Thread.currentThread().setName("Main");
+        */
+        Node node = new Node("node1", new ParticipantState(100, new HashMap<String, File>() {{
             put("test", new File("test", 100));
         }}));
+        /*
         ThreadInfo[] threads = ManagementFactory.getThreadMXBean()
                 .dumpAllThreads(true, true);
         for (final ThreadInfo info : threads)
@@ -43,6 +45,6 @@ public class Main {
         threads = ManagementFactory.getThreadMXBean()
                 .dumpAllThreads(true, true);
         for (final ThreadInfo info : threads)
-            System.out.print(info);
+            System.out.print(info);*/
     }
 }

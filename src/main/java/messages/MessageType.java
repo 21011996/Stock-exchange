@@ -13,12 +13,20 @@ public enum MessageType {
     BROKE("broke"),
     TRANSFER_FILE("transfer_file"),
     NOTIFY_BUY("notify_buy"),
+    HANDSHAKE_HELLO("handshake_hello"),
+    HANDSHAKE_RESPONSE("handshake_response"),
     ERROR("error");
 
     private final String header;
 
     MessageType(String header) {
         this.header = header;
+    }
+
+
+    @Override
+    public String toString() {
+        return header;
     }
 
     public static MessageType parse(String header) {

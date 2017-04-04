@@ -1,21 +1,21 @@
 package network
 
+import logic.Node
+import messages.HandShakeHelloMessage
+import messages.HandShakeResponseMessage
 import messages.Message
 import messages.Record
-import java.io.BufferedReader
 import java.io.DataOutputStream
 import java.io.IOException
-import java.io.InputStreamReader
 import java.net.ConnectException
 import java.net.ServerSocket
 import java.net.Socket
-import java.nio.ByteBuffer
 import java.util.*
 
 /**
  * Created by kirill on 03.04.17.
  */
-class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, val myAddr: MyAddr,
+class FixedAddressesNetworkLogicImpl private constructor(val node: Node, val nodeName: String, val myAddr: MyAddr,
                                                          val others: List<MyAddr>) : AbstractNetworkLogic() {
     private val serverSocket = ServerSocket(myAddr.port)
 
@@ -43,29 +43,27 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
 
     fun handleSocket(socket: Socket) {
         Thread({
-            val input = BufferedReader(InputStreamReader(socket.getInputStream()))
-            val output = DataOutputStream(socket.getOutputStream())
-
-            var line: String?
+            val input = socket.getInputStream()
             println("start tcp read cycle for $socket")
             while (!Thread.interrupted()) {
                 try {
-                    line = input.readLine()
-                    if (line.startsWith(HELLO_PREFIX)) {
-                        val name = line.split(' ')[1]
-                        addressBook[name] = socket
-                        output.writeBytes("$RESPONSE_PREFIX $nodeName\n")
-                        output.flush()
-                    } else if (line.startsWith(RESPONSE_PREFIX)) {
-                        val name = line.split(' ')[1]
-                        if (!addressBook.containsKey(name)) {
-                            addressBook[name] = socket
+                    val message = Message.parseRecord(Record.fromInputStream(input))
+                    when (message) {
+                        is HandShakeHelloMessage -> {
+                            addressBook[message.name] = socket
+                            sendToSocket(HandShakeResponseMessage(nodeName), socket)
+                            sendToSocket(node.generateHelloMessage(), socket)
                         }
-                    } else {
-                        //TODO : read record here
-                        //val msg = Message.parseRecord(Record.fromByteBuffer(line!!.byteInputStream().))
+                        is HandShakeResponseMessage -> {
+                            if (!addressBook.containsKey(message.name)) {
+                                addressBook[message.name] = socket
+                            }
+                        }
+                        else -> {
+                            messageHandlers.forEach { it.accept(message) }
+                        }
                     }
-                    println("get $line from: $socket")
+                    println("get $message from: $socket")
                 } catch (e: Exception) {
                     println("tcp reader thread error: $e")
                     addressBook.values.remove(socket)
@@ -80,28 +78,29 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
         for ((host, port) in others) {
             try {
                 val socket = Socket(host, port)
-                val output = DataOutputStream(socket.getOutputStream())
-                output.writeBytes("$HELLO_PREFIX $nodeName\n")
-                output.flush()
+                sendToSocket(HandShakeHelloMessage(nodeName), socket)
+                sendToSocket(node.generateHelloMessage(), socket)
                 println("connected to $socket")
                 handleSocket(socket)
-            } catch (ignored: ConnectException) { }
+            } catch (ignored: ConnectException) {
+            }
         }
     }
 
     override fun send(node: String, message: Message) {
-        sendToSocket(message, addressBook[node]?: throw NoSuchNodeException(node))
+        sendToSocket(message, addressBook[node] ?: throw NoSuchNodeException(node))
     }
 
     override fun sendToSocket(message: Message, socket: Socket) {
-        //TODO : цкшеу record here
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val output = DataOutputStream(socket.getOutputStream())
+        output.write(message.toRecord().toByteArray())
+        output.flush()
     }
 
     companion object {
-        fun buildFromConfig(nodeName: String): FixedAddressesNetworkLogicImpl {
+        fun buildFromConfig(nodeName: String, node: Node): FixedAddressesNetworkLogicImpl {
             val cfg = readConfig()
-            return FixedAddressesNetworkLogicImpl(nodeName, MyAddr.fromConfig(nodeName, cfg), othersAddrs(nodeName, cfg))
+            return FixedAddressesNetworkLogicImpl(node, nodeName, MyAddr.fromConfig(nodeName, cfg), othersAddrs(nodeName, cfg))
         }
 
         data class Config(val name: String, val host: String, val port: Int)
@@ -116,7 +115,7 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
         }
 
         private fun readConfig(): List<Config> {
-            val confIS = FixedAddressesNetworkLogic2::class.java.getResourceAsStream("/addresses.conf")
+            val confIS = FixedAddressesNetworkLogicImpl::class.java.getResourceAsStream("/addresses.conf")
             val lines = Scanner(confIS).useDelimiter("\\A").next().split('\n')
             return lines.map { line ->
                 val (name, address) = line.split(' ')
@@ -128,8 +127,5 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
         private fun othersAddrs(nodeName: String, config: List<Config>): List<MyAddr> {
             return config.filter { it.name != nodeName }.map { MyAddr(it.host, it.port) }
         }
-
-        private val HELLO_PREFIX = "###hello.from"
-        private val RESPONSE_PREFIX = "###response.from"
     }
 }

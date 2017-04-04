@@ -30,6 +30,10 @@ public abstract class Message {
                 return TransferFileMessage.parseRecord(record);
             case NOTIFY_BUY:
                 return NotifyBuyMessage.parseRecord(record);
+            case HANDSHAKE_HELLO:
+                return new HandShakeHelloMessage(record.getName());
+            case HANDSHAKE_RESPONSE:
+                return new HandShakeResponseMessage(record.getName());
             default:
                 return null;
         }

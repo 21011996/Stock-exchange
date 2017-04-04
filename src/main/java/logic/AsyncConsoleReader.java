@@ -1,7 +1,7 @@
 package logic;
 
-/**
- * Created by amir.
+/*
+  Created by @amir.
  */
 
 import com.sun.deploy.util.StringUtils;
@@ -77,6 +77,9 @@ public class AsyncConsoleReader implements Runnable {
                         sellerLogic.rejectBid(request[1], request[2],
                                 StringUtils.join(Arrays.asList(request).subList(3, request.length), null));
                     }
+                    break;
+                case "status":
+                    System.out.println(parent.getCurrentState().toString());
                     break;
                 default:
                     System.out.println("Can't parse your request");
