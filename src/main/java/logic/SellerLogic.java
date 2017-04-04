@@ -15,22 +15,6 @@ public class SellerLogic {
     private HashMap<String, File> files;
     private HashMap<String, ArrayList<PurchaseRequest>> purchaseRequests = new HashMap<>();
     private HashMap<String, PurchaseRequest> acceptedRequests = new HashMap<>();
-
-    public HashMap<String,File> getF(){
-        return files;
-    }
-
-    public HashMap<String,ArrayList<PurchaseRequest>> getPurReq(){
-        return purchaseRequests;
-    }
-
-    public HashMap<String,PurchaseRequest> getAccReq(){
-        return acceptedRequests;
-    }
-
-
-
-
     private Scanner in = new Scanner(System.in);
     private Node parent;
 
@@ -39,9 +23,22 @@ public class SellerLogic {
         files = parent.getCurrentState().getDocuments();
     }
 
+
     public SellerLogic(Node parent, Collection<File> collection) {
         this(parent);
         parent.getCurrentState().addDocuments(collection);
+    }
+
+    public HashMap<String, File> getF() {
+        return files;
+    }
+
+    public HashMap<String, ArrayList<PurchaseRequest>> getPurReq() {
+        return purchaseRequests;
+    }
+
+    public HashMap<String, PurchaseRequest> getAccReq() {
+        return acceptedRequests;
     }
 
     public void setIn(Scanner in) {
@@ -91,8 +88,9 @@ public class SellerLogic {
                 parent.getCurrentState().addRemoteDocument(toTransfer, requestSender);
                 File details = files.get(requestedFile);
                 details.setPrice(acceptedRequests.get(requestedFile).getOffer());
-                for (PurchaseRequest request : purchaseRequests.get(requestedFile)) {
-                    parent.sendMessage(requestSender, new NotifyBuyMessage(requestSender, details)); //TODO: Looks like bug, request is not used
+                parent.getCurrentState().setBalance(parent.getCurrentState().getBalance() + details.getPrice());
+                for (String neighbor : parent.getCurrentState().getNeighbors()) {
+                    parent.sendMessage(neighbor, new NotifyBuyMessage(requestSender, details));
                 }
                 files.remove(requestedFile);
                 purchaseRequests.remove(requestedFile);

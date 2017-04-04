@@ -1,7 +1,7 @@
 package logic;
 
-/**
- * Created by amir.
+/*
+  Created by @amir.
  */
 
 import java.io.InputStream;
@@ -62,6 +62,9 @@ public class AsyncConsoleReader implements Runnable {
                     break;
                 case "buy":
                     buyerLogic.wantToBuy(request[1], Integer.parseInt(request[2]));
+                    break;
+                case "status":
+                    System.out.println(parent.getCurrentState().toString());
                     break;
                 default:
                     System.out.println("Can't parse your request");

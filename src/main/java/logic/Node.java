@@ -1,11 +1,13 @@
 package logic;
 
+import messages.HelloMessage;
 import messages.Message;
-import network.FixedAddressesNetworkLogicImpl;
 import model.Envelope;
+import network.FixedAddressesNetworkLogicImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -30,7 +32,7 @@ public class Node {
         this.currentState = participantState;
         sellerLogic = new SellerLogic(this);
         buyerLogic = new BuyerLogic(this);
-        networkLogic = FixedAddressesNetworkLogicImpl.Companion.buildFromConfig(this.name);
+        networkLogic = FixedAddressesNetworkLogicImpl.Companion.buildFromConfig(this.name, this);
         networkLogic.addMessageHandler(messagesToHandle::add);
 
         logger.info("Starting consoleThread");
@@ -44,6 +46,7 @@ public class Node {
         logger.info("Starting handlingThread");
         handlingThread = new Thread(this::handleMessagesLoop);
         handlingThread.start();
+        System.out.println(currentState.getDocuments().toString());
     }
 
     public Node(String name, ParticipantState participantState, int i) {
@@ -51,7 +54,7 @@ public class Node {
         this.currentState = participantState;
         sellerLogic = new SellerLogic(this);
         buyerLogic = new BuyerLogic(this);
-        networkLogic = FixedAddressesNetworkLogicImpl.Companion.buildFromConfig(this.name);
+        networkLogic = FixedAddressesNetworkLogicImpl.Companion.buildFromConfig(this.name, this);
         networkLogic.addMessageHandler(messagesToHandle::add);
 
         logger.info("Starting consoleThread");
@@ -79,6 +82,10 @@ public class Node {
 
     public String getName() {
         return name;
+    }
+
+    public HelloMessage generateHelloMessage() {
+        return new HelloMessage(getName(), getCurrentState().getBalance(), new ArrayList<>(getCurrentState().getDocuments().values()));
     }
 
     public void shutdown() {

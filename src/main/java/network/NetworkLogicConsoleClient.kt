@@ -1,8 +1,9 @@
 package network
 
 import files.File
+import logic.Node
+import logic.ParticipantState
 import messages.HelloMessage
-import kotlin.collections.ArrayList
 
 /**
  * Created by kirill on 03.04.17.
@@ -10,7 +11,7 @@ import kotlin.collections.ArrayList
 
 fun main(args: Array<String>) {
     val name = args[0]
-    val logic = FixedAddressesNetworkLogicImpl.buildFromConfig(name)
+    val logic = FixedAddressesNetworkLogicImpl.buildFromConfig(name, Node("lul", ParticipantState(1, HashMap<String, File>()), true))
     while (true) {
         val input = readLine()!!
         if (input == "end") {

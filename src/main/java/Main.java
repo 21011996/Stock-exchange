@@ -14,7 +14,10 @@ public class Main {
     private Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws InterruptedException {
-        new Main().run();
+        //new Main().run();
+        Node node = new Node(args[0], new ParticipantState(1000, new HashMap<String, File>() {{
+            put("test" + args[0], new File("test" + args[0], 100));
+        }}));
     }
 
     public void run() throws InterruptedException {
@@ -22,7 +25,7 @@ public class Main {
         System.out.println(new String(temp));
         /*Thread.currentThread().setName("Main");
         */
-        Node node = new Node("TestNode", new ParticipantState(100, new HashMap<String, File>() {{
+        Node node = new Node("node1", new ParticipantState(100, new HashMap<String, File>() {{
             put("test", new File("test", 100));
         }}));
         /*

@@ -1,10 +1,12 @@
 package network
 
+import logic.Node
 import messages.HandShakeHelloMessage
 import messages.HandShakeResponseMessage
 import messages.Message
 import messages.Record
-import java.io.*
+import java.io.DataOutputStream
+import java.io.IOException
 import java.net.ConnectException
 import java.net.ServerSocket
 import java.net.Socket
@@ -13,7 +15,7 @@ import java.util.*
 /**
  * Created by kirill on 03.04.17.
  */
-class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, val myAddr: MyAddr,
+class FixedAddressesNetworkLogicImpl private constructor(val node: Node, val nodeName: String, val myAddr: MyAddr,
                                                          val others: List<MyAddr>) : AbstractNetworkLogic() {
     private val serverSocket = ServerSocket(myAddr.port)
 
@@ -50,6 +52,7 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
                         is HandShakeHelloMessage -> {
                             addressBook[message.name] = socket
                             sendToSocket(HandShakeResponseMessage(nodeName), socket)
+                            sendToSocket(node.generateHelloMessage(), socket)
                         }
                         is HandShakeResponseMessage -> {
                             if (!addressBook.containsKey(message.name)) {
@@ -76,6 +79,7 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
             try {
                 val socket = Socket(host, port)
                 sendToSocket(HandShakeHelloMessage(nodeName), socket)
+                sendToSocket(node.generateHelloMessage(), socket)
                 println("connected to $socket")
                 handleSocket(socket)
             } catch (ignored: ConnectException) {
@@ -94,9 +98,9 @@ class FixedAddressesNetworkLogicImpl private constructor(val nodeName: String, v
     }
 
     companion object {
-        fun buildFromConfig(nodeName: String): FixedAddressesNetworkLogicImpl {
+        fun buildFromConfig(nodeName: String, node: Node): FixedAddressesNetworkLogicImpl {
             val cfg = readConfig()
-            return FixedAddressesNetworkLogicImpl(nodeName, MyAddr.fromConfig(nodeName, cfg), othersAddrs(nodeName, cfg))
+            return FixedAddressesNetworkLogicImpl(node, nodeName, MyAddr.fromConfig(nodeName, cfg), othersAddrs(nodeName, cfg))
         }
 
         data class Config(val name: String, val host: String, val port: Int)
