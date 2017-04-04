@@ -45,6 +45,11 @@ public class Node {
         handlingThread = new Thread(this::handleMessagesLoop);
         handlingThread.start();
 
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         networkLogic = FixedAddressesNetworkLogicImpl.Companion.buildFromConfig(this.name, this);
         networkLogic.addMessageHandler(messagesToHandle::add);
 
