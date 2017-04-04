@@ -92,7 +92,7 @@ public class SellerLogic {
                 File details = files.get(requestedFile);
                 details.setPrice(acceptedRequests.get(requestedFile).getOffer());
                 for (PurchaseRequest request : purchaseRequests.get(requestedFile)) {
-                    parent.sendMessage(requestSender, new NotifyBuyMessage(requestSender, details)); //TODO: Looks like bug, request is not used
+                    parent.sendMessage(request.getNode(), new NotifyBuyMessage(requestSender, details));
                 }
                 files.remove(requestedFile);
                 purchaseRequests.remove(requestedFile);
@@ -134,6 +134,12 @@ public class SellerLogic {
                     requests.get(i).getOffer(), requests.get(i).getNode()));
         }
 
+    }
+
+    public void rejectBid(String fileName, String node, String reason) {
+        ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
+        requests.removeIf(purchaseRequest -> purchaseRequest.getNode().equals(node));
+        parent.sendMessage(node, new RejectBuyMessage(parent.getName(), fileName, reason));
     }
 
     public void sellFile(String fileName, String node) {
