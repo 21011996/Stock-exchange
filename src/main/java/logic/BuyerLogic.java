@@ -61,6 +61,9 @@ public class BuyerLogic {
                 parent.getCurrentState().setRemoteDocument(((NotifyBuyMessage) message).getFile(), message.getName());
             }
         }
+        if (message instanceof RejectBuyMessage) {
+            System.out.println(String.format("Your bid for file %s was rejected by %s, reason: %s", ((RejectBuyMessage) message).getFileName(), message.getName(), ((RejectBuyMessage) message).getReason()));
+        }
         if (message instanceof AcceptBuyMessage) {
             String name = ((AcceptBuyMessage) message).getFileName();
             if (!requested.stream().map(x -> x.getName()).collect(Collectors.toList()).contains(name)) {
