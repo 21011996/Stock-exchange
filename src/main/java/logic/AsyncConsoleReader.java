@@ -75,7 +75,7 @@ public class AsyncConsoleReader implements Runnable {
                 case "reject":
                     if (request.length >= 3) {
                         sellerLogic.rejectBid(request[1], request[2],
-                                StringUtils.join(Arrays.asList(request).subList(3, request.length), null));
+                                StringUtils.join(Arrays.asList(request).subList(3, request.length), " "));
                     }
                     break;
                 case "status":

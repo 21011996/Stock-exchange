@@ -32,20 +32,23 @@ public class Node {
         this.currentState = participantState;
         sellerLogic = new SellerLogic(this);
         buyerLogic = new BuyerLogic(this);
-        networkLogic = FixedAddressesNetworkLogicImpl.Companion.buildFromConfig(this.name, this);
-        networkLogic.addMessageHandler(messagesToHandle::add);
 
         logger.info("Starting consoleThread");
         asyncConsoleReader = new AsyncConsoleReader(this, sellerLogic, buyerLogic);
         consoleThread = new Thread(asyncConsoleReader);
         consoleThread.start();
-      
+
         logger.info("Starting sendingThread");
         sendingThread = new Thread(this::sendMessagesLoop);
         sendingThread.start();
         logger.info("Starting handlingThread");
         handlingThread = new Thread(this::handleMessagesLoop);
         handlingThread.start();
+
+        networkLogic = FixedAddressesNetworkLogicImpl.Companion.buildFromConfig(this.name, this);
+        networkLogic.addMessageHandler(messagesToHandle::add);
+
+
         System.out.println(currentState.getDocuments().toString());
     }
 
