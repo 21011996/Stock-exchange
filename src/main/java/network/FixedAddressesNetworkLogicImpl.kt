@@ -19,9 +19,10 @@ open class FixedAddressesNetworkLogicImpl
 protected constructor(val node: Node, val nodeName: String = node.name,
                       val myAddr: MyAddr, val others: List<MyAddr> = listOf()) : AbstractNetworkLogic() {
 
-    protected val serverSocket = ServerSocket(myAddr.port)
+    protected var serverSocket : ServerSocket? = null
 
     open fun start() {
+        serverSocket = ServerSocket(myAddr.port)
         println("$nodeName started...")
         startServerSocket()
         trySendHello()
@@ -37,12 +38,12 @@ protected constructor(val node: Node, val nodeName: String = node.name,
         Thread({
             while (!Thread.interrupted()) {
                 try {
-                    val socket = serverSocket.accept()
+                    val socket = serverSocket!!.accept()
                     println("$socket accepted")
                     handleSocket(socket)
                 } catch (e: IOException) {
                     println("I/O error on serverSocket: " + e)
-                    serverSocket.close()
+                    serverSocket?.close()
                     break
                 }
             }

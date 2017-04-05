@@ -2,10 +2,7 @@ package network
 
 import logic.Node
 import java.io.IOException
-import java.net.DatagramPacket
-import java.net.InetAddress
-import java.net.MulticastSocket
-import java.net.Socket
+import java.net.*
 
 /**
  * Created by kirill on 05.04.17.
@@ -18,6 +15,7 @@ private constructor(node: Node, nodeName: String, myAddr: MyAddr,
     val address: InetAddress = InetAddress.getByName(myAddr.host)
 
     override fun start() {
+        serverSocket = ServerSocket(myAddr.port)
         println("$nodeName started...")
         multicastSocket.joinGroup(address)
         startServerSocket()
