@@ -22,7 +22,7 @@ protected constructor(val node: Node, val nodeName: String = node.name,
     protected var serverSocket : ServerSocket? = null
 
     open fun start() {
-        serverSocket = ServerSocket(myAddr.port)
+        serverSocket = ServerSocket(8892)
         println("$nodeName started...")
         startServerSocket()
         trySendHello()

@@ -15,7 +15,7 @@ private constructor(node: Node, nodeName: String, myAddr: MyAddr,
     val address: InetAddress = InetAddress.getByName(myAddr.host)
 
     override fun start() {
-        serverSocket = ServerSocket(myAddr.port)
+        serverSocket = ServerSocket(8892)
         println("$nodeName started...")
         multicastSocket.joinGroup(address)
         startServerSocket()
