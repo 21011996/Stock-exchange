@@ -15,9 +15,9 @@ import java.util.*
 /**
  * Created by kirill on 03.04.17.
  */
-class FixedAddressesNetworkLogicImpl private constructor(val node: Node, val nodeName: String, val myAddr: MyAddr,
-                                                         val others: List<MyAddr>) : AbstractNetworkLogic() {
-    private val serverSocket = ServerSocket(myAddr.port)
+open class FixedAddressesNetworkLogicImpl protected constructor(val node: Node, val nodeName: String, val myAddr: MyAddr,
+                                                                val others: List<MyAddr>) : AbstractNetworkLogic() {
+    protected val serverSocket = ServerSocket(myAddr.port)
 
     init {
         println("$nodeName started...")
@@ -25,7 +25,7 @@ class FixedAddressesNetworkLogicImpl private constructor(val node: Node, val nod
         trySendHello()
     }
 
-    fun startServerSocket() {
+    protected fun startServerSocket() {
         Thread({
             while (!Thread.interrupted()) {
                 try {
@@ -41,7 +41,7 @@ class FixedAddressesNetworkLogicImpl private constructor(val node: Node, val nod
         }).start()
     }
 
-    fun handleSocket(socket: Socket) {
+    protected fun handleSocket(socket: Socket) {
         Thread({
             val input = socket.getInputStream()
             println("start tcp read cycle for $socket")
@@ -100,32 +100,29 @@ class FixedAddressesNetworkLogicImpl private constructor(val node: Node, val nod
     companion object {
         fun buildFromConfig(nodeName: String, node: Node): FixedAddressesNetworkLogicImpl {
             val cfg = readConfig()
-            return FixedAddressesNetworkLogicImpl(node, nodeName, MyAddr.fromConfig(nodeName, cfg), othersAddrs(nodeName, cfg))
+            return FixedAddressesNetworkLogicImpl(node, nodeName, thisNodeAddr(nodeName, cfg), othersAddrs(nodeName, cfg))
         }
 
-        data class Config(val name: String, val host: String, val port: Int)
+        data class Config(val name: String, val addr: MyAddr)
 
-        data class MyAddr(val host: String, val port: Int) {
-            companion object {
-                fun fromConfig(nodeName: String, config: List<Config>): MyAddr {
-                    val cfg = config.filter { it.name == nodeName }.first()
-                    return MyAddr(cfg.host, cfg.port)
-                }
-            }
-        }
+        data class MyAddr(val host: String, val port: Int, val multicastPort: Int)
 
         private fun readConfig(): List<Config> {
             val confIS = FixedAddressesNetworkLogicImpl::class.java.getResourceAsStream("/addresses.conf")
             val lines = Scanner(confIS).useDelimiter("\\A").next().split('\n')
             return lines.map { line ->
-                val (name, address) = line.split(' ')
+                val (name, address, multicastPort) = line.split(' ')
                 val (host, port) = address.split(':')
-                Config(name, host, port.toInt())
+                Config(name, MyAddr(host, port.toInt(), multicastPort.toInt()))
             }
         }
 
+        private fun thisNodeAddr(nodeName: String, config: List<Config>): MyAddr {
+            return config.find { it.name == nodeName }!!.addr
+        }
+
         private fun othersAddrs(nodeName: String, config: List<Config>): List<MyAddr> {
-            return config.filter { it.name != nodeName }.map { MyAddr(it.host, it.port) }
+            return config.filter { it.name != nodeName }.map { it.addr }
         }
     }
 }
