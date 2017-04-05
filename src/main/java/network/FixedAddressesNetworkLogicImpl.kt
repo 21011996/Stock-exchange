@@ -52,12 +52,14 @@ protected constructor(val node: Node, val nodeName: String = node.name,
                     val message = Message.parseRecord(Record.fromInputStream(input))
                     when (message) {
                         is HandShakeHelloMessage -> {
-                            addressBook[message.name] = socket
-                            sendToSocket(HandShakeResponseMessage(nodeName), socket)
-                            sendToSocket(node.generateHelloMessage(), socket)
+                            if (message.name != nodeName) { // when multicast don't want to save information about self
+                                addressBook[message.name] = socket
+                                sendToSocket(HandShakeResponseMessage(nodeName), socket)
+                                sendToSocket(node.generateHelloMessage(), socket)
+                            }
                         }
                         is HandShakeResponseMessage -> {
-                            if (!addressBook.containsKey(message.name)) {
+                            if (message.name != nodeName && !addressBook.containsKey(message.name)) {
                                 addressBook[message.name] = socket
                             }
                         }
@@ -76,17 +78,21 @@ protected constructor(val node: Node, val nodeName: String = node.name,
         }).start()
     }
 
-    fun trySendHello() {
+    private fun trySendHello() {
         for ((host, port) in others) {
             try {
                 val socket = Socket(host, port)
-                sendToSocket(HandShakeHelloMessage(nodeName), socket)
-                sendToSocket(node.generateHelloMessage(), socket)
                 println("connected to $socket")
+                sayHello(socket)
                 handleSocket(socket)
             } catch (ignored: ConnectException) {
             }
         }
+    }
+
+    protected fun sayHello(socket: Socket) {
+        sendToSocket(HandShakeHelloMessage(nodeName), socket)
+        sendToSocket(node.generateHelloMessage(), socket)
     }
 
     override fun send(node: String, message: Message) {
