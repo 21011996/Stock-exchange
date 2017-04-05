@@ -55,6 +55,15 @@ public class Node {
 
 
         System.out.println(currentState.getDocuments().toString());
+        System.out.println("Usage:\n" +
+                "- To buy a file: buy %filename% %bid%\n" +
+                "- To sell the requested file: sell %filename% %nodename%\n" +
+                "- To reject the bid: reject %filename% %nodename% %reason%\n" +
+                "- To list all available files to buy: listfiles\n" +
+                "- To see your balance and files: status\n" +
+                "- To see all open bids for your files: infoall\n" +
+                "- To see all open bids for your particular file: info %filename%\n" +
+                "- To terminate: exit");
     }
 
     public Node(String name, ParticipantState participantState, int i) {
