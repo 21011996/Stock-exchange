@@ -42,7 +42,7 @@ public class AsyncConsoleReader implements Runnable {
         Thread.currentThread().setName(parent.getName() + "Console");
         Scanner in = new Scanner(input);
         while (!interrupted()) {
-            String[] request = in.nextLine().split(" ");
+            String[] request = in.nextLine().replaceAll(" +", " ").split(" ");
             if (interrupted())
                 break;
             //assuming that file names are one word
