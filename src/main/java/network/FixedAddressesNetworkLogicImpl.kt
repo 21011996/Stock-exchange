@@ -15,33 +15,42 @@ import java.util.*
 /**
  * Created by kirill on 03.04.17.
  */
-class FixedAddressesNetworkLogicImpl private constructor(val node: Node, val nodeName: String, val myAddr: MyAddr,
-                                                         val others: List<MyAddr>) : AbstractNetworkLogic() {
-    private val serverSocket = ServerSocket(myAddr.port)
+open class FixedAddressesNetworkLogicImpl
+protected constructor(val node: Node, val nodeName: String = node.name,
+                      val myAddr: MyAddr, val others: List<MyAddr> = listOf()) : AbstractNetworkLogic() {
 
-    init {
+    protected var serverSocket : ServerSocket? = null
+
+    open fun start() {
+        serverSocket = ServerSocket(8892)
         println("$nodeName started...")
         startServerSocket()
         trySendHello()
     }
 
-    fun startServerSocket() {
+    /*init {
+        println("$nodeName started...")
+        startServerSocket()
+        trySendHello()
+    }*/
+
+    protected fun startServerSocket() {
         Thread({
             while (!Thread.interrupted()) {
                 try {
-                    val socket = serverSocket.accept()
+                    val socket = serverSocket!!.accept()
                     println("$socket accepted")
                     handleSocket(socket)
                 } catch (e: IOException) {
                     println("I/O error on serverSocket: " + e)
-                    serverSocket.close()
+                    serverSocket?.close()
                     break
                 }
             }
         }).start()
     }
 
-    fun handleSocket(socket: Socket) {
+    protected fun handleSocket(socket: Socket) {
         Thread({
             val input = socket.getInputStream()
             println("start tcp read cycle for $socket")
@@ -50,12 +59,14 @@ class FixedAddressesNetworkLogicImpl private constructor(val node: Node, val nod
                     val message = Message.parseRecord(Record.fromInputStream(input))
                     when (message) {
                         is HandShakeHelloMessage -> {
-                            addressBook[message.name] = socket
-                            sendToSocket(HandShakeResponseMessage(nodeName), socket)
-                            sendToSocket(node.generateHelloMessage(), socket)
+                            if (message.name != nodeName) { // when multicast don't want to save information about self
+                                addressBook[message.name] = socket
+                                sendToSocket(HandShakeResponseMessage(nodeName), socket)
+                                sendToSocket(node.generateHelloMessage(), socket)
+                            }
                         }
                         is HandShakeResponseMessage -> {
-                            if (!addressBook.containsKey(message.name)) {
+                            if (message.name != nodeName && !addressBook.containsKey(message.name)) {
                                 addressBook[message.name] = socket
                             }
                         }
@@ -74,17 +85,21 @@ class FixedAddressesNetworkLogicImpl private constructor(val node: Node, val nod
         }).start()
     }
 
-    fun trySendHello() {
+    private fun trySendHello() {
         for ((host, port) in others) {
             try {
                 val socket = Socket(host, port)
-                sendToSocket(HandShakeHelloMessage(nodeName), socket)
-                sendToSocket(node.generateHelloMessage(), socket)
                 println("connected to $socket")
+                sayHello(socket)
                 handleSocket(socket)
             } catch (ignored: ConnectException) {
             }
         }
+    }
+
+    protected fun sayHello(socket: Socket) {
+        sendToSocket(HandShakeHelloMessage(nodeName), socket)
+        sendToSocket(node.generateHelloMessage(), socket)
     }
 
     override fun send(node: String, message: Message) {
@@ -100,32 +115,29 @@ class FixedAddressesNetworkLogicImpl private constructor(val node: Node, val nod
     companion object {
         fun buildFromConfig(nodeName: String, node: Node): FixedAddressesNetworkLogicImpl {
             val cfg = readConfig()
-            return FixedAddressesNetworkLogicImpl(node, nodeName, MyAddr.fromConfig(nodeName, cfg), othersAddrs(nodeName, cfg))
+            return FixedAddressesNetworkLogicImpl(node, nodeName, thisNodeAddr(nodeName, cfg), othersAddrs(nodeName, cfg))
         }
 
-        data class Config(val name: String, val host: String, val port: Int)
+        data class Config(val name: String, val addr: MyAddr)
 
-        data class MyAddr(val host: String, val port: Int) {
-            companion object {
-                fun fromConfig(nodeName: String, config: List<Config>): MyAddr {
-                    val cfg = config.filter { it.name == nodeName }.first()
-                    return MyAddr(cfg.host, cfg.port)
-                }
-            }
-        }
+        data class MyAddr(val host: String, val port: Int, val multicastPort: Int)
 
-        private fun readConfig(): List<Config> {
+        fun readConfig(): List<Config> {
             val confIS = FixedAddressesNetworkLogicImpl::class.java.getResourceAsStream("/addresses.conf")
             val lines = Scanner(confIS).useDelimiter("\\A").next().split('\n')
             return lines.map { line ->
-                val (name, address) = line.split(' ')
+                val (name, address, multicastPort) = line.split(' ')
                 val (host, port) = address.split(':')
-                Config(name, host, port.toInt())
+                Config(name, MyAddr(host, port.toInt(), multicastPort.toInt()))
             }
         }
 
-        private fun othersAddrs(nodeName: String, config: List<Config>): List<MyAddr> {
-            return config.filter { it.name != nodeName }.map { MyAddr(it.host, it.port) }
+        fun thisNodeAddr(nodeName: String, config: List<Config>): MyAddr {
+            return config.find { it.name == nodeName }!!.addr
+        }
+
+        fun othersAddrs(nodeName: String, config: List<Config>): List<MyAddr> {
+            return config.filter { it.name != nodeName }.map { it.addr }
         }
     }
 }

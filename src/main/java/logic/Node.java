@@ -4,6 +4,7 @@ import messages.HelloMessage;
 import messages.Message;
 import model.Envelope;
 import network.FixedAddressesNetworkLogicImpl;
+import network.NetworkLogicImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,13 +45,13 @@ public class Node {
         logger.info("Starting handlingThread");
         handlingThread = new Thread(this::handleMessagesLoop);
         handlingThread.start();
-
+     
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        networkLogic = FixedAddressesNetworkLogicImpl.Companion.buildFromConfig(this.name, this);
+        networkLogic = NetworkLogicImpl.Companion.buildFromConfig(this.name, this);
         networkLogic.addMessageHandler(messagesToHandle::add);
 
 

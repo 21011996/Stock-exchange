@@ -11,7 +11,9 @@ import messages.HelloMessage
 
 fun main(args: Array<String>) {
     val name = args[0]
-    val logic = FixedAddressesNetworkLogicImpl.buildFromConfig(name, Node("lul", ParticipantState(1, HashMap<String, File>()), true))
+    //val logic = FixedAddressesNetworkLogicImpl.buildFromConfig(name, Node("lul", ParticipantState(1, HashMap<String, File>()), true))
+    val logic = NetworkLogicImpl.buildFromConfig(name, Node(name, ParticipantState(1, HashMap<String, File>()), true))
+    logic.start()
     while (true) {
         val input = readLine()!!
         if (input == "end") {
