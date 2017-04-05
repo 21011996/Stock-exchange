@@ -15,8 +15,10 @@ import java.util.*
 /**
  * Created by kirill on 03.04.17.
  */
-open class FixedAddressesNetworkLogicImpl protected constructor(val node: Node, val nodeName: String, val myAddr: MyAddr,
-                                                                val others: List<MyAddr>) : AbstractNetworkLogic() {
+open class FixedAddressesNetworkLogicImpl
+protected constructor(val node: Node, val nodeName: String = node.name,
+                      val myAddr: MyAddr, val others: List<MyAddr> = listOf()) : AbstractNetworkLogic() {
+
     protected val serverSocket = ServerSocket(myAddr.port)
 
     init {
