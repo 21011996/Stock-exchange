@@ -17,12 +17,19 @@ private constructor(node: Node, nodeName: String, myAddr: MyAddr,
     val multicastSocket = MulticastSocket(myAddr.multicastPort)
     val address: InetAddress = InetAddress.getByName(myAddr.host)
 
-    init {
+    override fun start() {
         println("$nodeName started...")
         multicastSocket.joinGroup(address)
         startServerSocket()
         startMulticastListener()
     }
+
+    /*init {
+        println("$nodeName started...")
+        multicastSocket.joinGroup(address)
+        startServerSocket()
+        startMulticastListener()
+    }*/
 
     private fun startMulticastListener() {
         Thread({
@@ -64,7 +71,7 @@ private constructor(node: Node, nodeName: String, myAddr: MyAddr,
             others.filter { it.host == host }.first().port
 
     companion object {
-        fun buildFromConfig(nodeName: String, node: Node): FixedAddressesNetworkLogicImpl {
+        fun buildFromConfig(nodeName: String, node: Node): NetworkLogicImpl {
             val cfg = readConfig()
             return NetworkLogicImpl(node, nodeName, thisNodeAddr(nodeName, cfg), othersAddrs(nodeName, cfg))
         }
