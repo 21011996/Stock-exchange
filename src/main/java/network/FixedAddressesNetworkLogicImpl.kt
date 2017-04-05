@@ -21,11 +21,17 @@ protected constructor(val node: Node, val nodeName: String = node.name,
 
     protected val serverSocket = ServerSocket(myAddr.port)
 
-    init {
+    open fun start() {
         println("$nodeName started...")
         startServerSocket()
         trySendHello()
     }
+
+    /*init {
+        println("$nodeName started...")
+        startServerSocket()
+        trySendHello()
+    }*/
 
     protected fun startServerSocket() {
         Thread({
