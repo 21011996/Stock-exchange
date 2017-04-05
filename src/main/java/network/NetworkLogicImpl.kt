@@ -1,6 +1,7 @@
 package network
 
 import logic.Node
+import java.io.IOException
 import java.net.DatagramPacket
 import java.net.InetAddress
 import java.net.MulticastSocket
@@ -18,6 +19,7 @@ class NetworkLogicImpl(node: Node, myAddr: MyAddr) : FixedAddressesNetworkLogicI
         println("$nodeName started...")
         multicastSocket.joinGroup(address)
         startServerSocket()
+        startMulticastListener()
     }
 
     private fun startMulticastListener() {
@@ -33,24 +35,31 @@ class NetworkLogicImpl(node: Node, myAddr: MyAddr) : FixedAddressesNetworkLogicI
                 multicastSocket.send(packet)
             }
 
-            while (true) {
-                val packet = DatagramPacket(multicastMsg, multicastMsg.size)
-                multicastSocket.receive(packet)
-                println("get udp packet from ${packet.address}")
-                val tcpPort = if (others.isNotEmpty()) //FOR DEBUG ONLY
-                    tcpSocketPortByHost(packet.address.hostAddress)
-                else
-                    myAddr.multicastPort
-                val socket = Socket(packet.address.hostAddress, 333)
+            while (!Thread.interrupted()) {
+                try {
+                    val packet = DatagramPacket(multicastMsg, multicastMsg.size)
+                    multicastSocket.receive(packet)
+                    println("get udp packet from ${packet.address}")
+                    val tcpPort = if (others.isNotEmpty()) //FOR DEBUG ONLY
+                        tcpSocketPortByHost(packet.address.hostAddress)
+                    else
+                        myAddr.multicastPort
+                    val socket = Socket(packet.address.hostAddress, 333)
 
-                val clientSocket = Socket(packet.address, tcpPort)
-                sayHello(socket)
-                handleSocket(socket)
+                    val clientSocket = Socket(packet.address, tcpPort)
+                    sayHello(socket)
+                    handleSocket(socket)
+                } catch (e: IOException) {
+                    println("I/O error on multicastSocket: " + e)
+                    multicastSocket.close()
+                    break
+                }
             }
         }).start()
     }
 
     private fun tcpSocketPortByHost(host: String) =
             others.filter { it.host == host }.first().port
+
 
 }
