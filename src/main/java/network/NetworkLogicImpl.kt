@@ -51,9 +51,7 @@ private constructor(node: Node, nodeName: String, myAddr: MyAddr,
                         tcpSocketPortByHost(packet.address.hostAddress)
                     else
                         myAddr.multicastPort
-                    val socket = Socket(packet.address.hostAddress, 333)
-
-                    val clientSocket = Socket(packet.address, tcpPort)
+                    val socket = Socket(packet.address.hostAddress, tcpPort)
                     sayHello(socket)
                     handleSocket(socket)
                 } catch (e: IOException) {
@@ -65,8 +63,8 @@ private constructor(node: Node, nodeName: String, myAddr: MyAddr,
         }).start()
     }
 
-    private fun tcpSocketPortByHost(host: String) =
-            others.filter { it.host == host }.first().port
+    private fun tcpSocketPortByHost(host: String) = 8892
+    //others.filter { it.host == host }.first().port
 
     companion object {
         fun buildFromConfig(nodeName: String, node: Node): NetworkLogicImpl {
