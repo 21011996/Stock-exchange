@@ -115,7 +115,7 @@ protected constructor(val node: Node, val nodeName: String = node.name,
 
         data class MyAddr(val host: String, val port: Int, val multicastPort: Int)
 
-        private fun readConfig(): List<Config> {
+        fun readConfig(): List<Config> {
             val confIS = FixedAddressesNetworkLogicImpl::class.java.getResourceAsStream("/addresses.conf")
             val lines = Scanner(confIS).useDelimiter("\\A").next().split('\n')
             return lines.map { line ->
@@ -125,11 +125,11 @@ protected constructor(val node: Node, val nodeName: String = node.name,
             }
         }
 
-        private fun thisNodeAddr(nodeName: String, config: List<Config>): MyAddr {
+        fun thisNodeAddr(nodeName: String, config: List<Config>): MyAddr {
             return config.find { it.name == nodeName }!!.addr
         }
 
-        private fun othersAddrs(nodeName: String, config: List<Config>): List<MyAddr> {
+        fun othersAddrs(nodeName: String, config: List<Config>): List<MyAddr> {
             return config.filter { it.name != nodeName }.map { it.addr }
         }
     }

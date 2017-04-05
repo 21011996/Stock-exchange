@@ -10,7 +10,9 @@ import java.net.Socket
 /**
  * Created by kirill on 05.04.17.
  */
-class NetworkLogicImpl(node: Node, myAddr: MyAddr) : FixedAddressesNetworkLogicImpl(node, myAddr = myAddr) {
+class NetworkLogicImpl
+private constructor(node: Node, nodeName: String, myAddr: MyAddr,
+                    others: List<MyAddr> = listOf()) : FixedAddressesNetworkLogicImpl(node, nodeName, myAddr, others) {
 
     val multicastSocket = MulticastSocket(myAddr.multicastPort)
     val address: InetAddress = InetAddress.getByName(myAddr.host)
@@ -61,5 +63,15 @@ class NetworkLogicImpl(node: Node, myAddr: MyAddr) : FixedAddressesNetworkLogicI
     private fun tcpSocketPortByHost(host: String) =
             others.filter { it.host == host }.first().port
 
+    companion object {
+        fun buildFromConfig(nodeName: String, node: Node): FixedAddressesNetworkLogicImpl {
+            val cfg = readConfig()
+            return NetworkLogicImpl(node, nodeName, thisNodeAddr(nodeName, cfg), othersAddrs(nodeName, cfg))
+        }
+
+        fun buildForNode(node: Node, addr: MyAddr): NetworkLogicImpl {
+            return NetworkLogicImpl(node, node.name, addr, listOf())
+        }
+    }
 
 }
