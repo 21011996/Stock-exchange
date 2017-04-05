@@ -46,6 +46,8 @@ public class BuyerLogic {
             requested.add(new File(fileToBuy, price));
         } else {
             logger.error("Requested file is not available");
+            System.out.println("Requested file is not available\n" +
+                    "To see all available files use: listfiles");
         }
     }
 
