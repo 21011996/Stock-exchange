@@ -71,7 +71,9 @@ private constructor(node: Node, nodeName: String, myAddr: MyAddr,
     companion object {
         fun buildFromConfig(nodeName: String, node: Node): NetworkLogicImpl {
             val cfg = readConfig()
-            return NetworkLogicImpl(node, nodeName, thisNodeAddr(nodeName, cfg), othersAddrs(nodeName, cfg))
+            val logic = NetworkLogicImpl(node, nodeName, thisNodeAddr(nodeName, cfg), othersAddrs(nodeName, cfg))
+            logic.start()
+            return logic
         }
 
         fun buildForNode(node: Node, addr: MyAddr): NetworkLogicImpl {
