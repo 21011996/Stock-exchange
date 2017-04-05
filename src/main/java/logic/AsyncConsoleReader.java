@@ -42,7 +42,7 @@ public class AsyncConsoleReader implements Runnable {
         Thread.currentThread().setName(parent.getName() + "Console");
         Scanner in = new Scanner(input);
         while (!interrupted()) {
-            String[] request = in.nextLine().split(" ");
+            String[] request = in.nextLine().replaceAll(" +", " ").split(" ");
             if (interrupted())
                 break;
             //assuming that file names are one word
@@ -69,7 +69,12 @@ public class AsyncConsoleReader implements Runnable {
                     break;
                 case "buy":
                     if (request.length == 3) {
-                        buyerLogic.wantToBuy(request[1], Integer.parseInt(request[2]));
+                        try {
+                            buyerLogic.wantToBuy(request[1], Integer.parseInt(request[2]));
+                        } catch (Exception e) {
+                            System.out.println("Illegal arguments\n" +
+                                    "Usage: buy %filename% %bid%");
+                        }
                     }
                     break;
                 case "reject":

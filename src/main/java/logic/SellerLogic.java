@@ -119,10 +119,10 @@ public class SellerLogic {
      *
      * @param fileName The file to show status for
      */
-    public void printBidStatus(String fileName) {
+    public boolean printBidStatus(String fileName) {
         if (!purchaseRequests.containsKey(fileName)) {
-            System.out.println("No such file");
-            return;
+            System.out.println("No bids for file" + " " + fileName);
+            return false;
         }
         ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
         requests.sort(Comparator.comparingInt(PurchaseRequest::getOffer).reversed());
@@ -131,6 +131,7 @@ public class SellerLogic {
             System.out.println(String.format("#%d bid: %7d from node %s", i + 1,
                     requests.get(i).getOffer(), requests.get(i).getNode()));
         }
+        return true;
 
     }
 
@@ -142,7 +143,9 @@ public class SellerLogic {
 
     public void sellFile(String fileName, String node) {
         if (!purchaseRequests.containsKey(fileName)) {
-            System.out.println("No such file");
+            System.out.println("Such file does not exist or not requested\n" +
+                    "To see all requested files and their bids use: infoall\n" +
+                    "To see your files use: status");
             return;
         }
         ArrayList<PurchaseRequest> requests = purchaseRequests.get(fileName);
@@ -163,8 +166,12 @@ public class SellerLogic {
      * Utility method. Prints current status for all files
      */
     public void printAllBids() {
+        boolean printedAnything = false;
         for (String filename : files.keySet()) {
-            printBidStatus(filename);
+            printedAnything |= printBidStatus(filename);
+        }
+        if (!printedAnything) {
+            System.out.println("No bids right now");
         }
     }
 
